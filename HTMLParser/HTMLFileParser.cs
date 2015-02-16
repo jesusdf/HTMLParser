@@ -4,34 +4,36 @@ namespace HTMLParser
 {
 	public class HTMLFileParser
 	{
-		public string FilePath { get; set; };
+		public string FilePath { get; set; }
 
-		public HTMLFileParser(){
-			HTMLFileParser(String.Empty);
-		}
-
-		public HTMLFileParser(string filePath) {
+		public HTMLFileParser (string filePath)
+		{
 			FilePath = filePath;
 		}
 
-		public bool Open(){
-			Open(FilePath);
+		public bool Open ()
+		{
+			return Open (FilePath);
 		}
 
-		public bool Open(string filePath){
-
+		public bool Open (string filePath)
+		{
+			return true;
 		}
 
-		public bool Fix(){
-
+		public bool Fix ()
+		{
+			return true;
 		}
 
-		public bool Save() {
-			Save(makeBackup:false);
+		public bool Save ()
+		{
+			return Save (makeBackup: false);
 		}
 
-		public bool Save(bool makeBackup) {
-
+		public bool Save (bool makeBackup)
+		{
+			return true;
 		}
 	}
 }
