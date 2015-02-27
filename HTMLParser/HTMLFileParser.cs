@@ -26,6 +26,8 @@ namespace HTMLParser
 
 				// There are various options, set as needed
 				_htmlDoc.OptionFixNestedTags = true;
+				_htmlDoc.OptionOutputOriginalCase = true;
+				_htmlDoc.OptionWriteEmptyNodes = true;
 
 				// filePath is a path to a file containing the html
 				_htmlDoc.Load(filePath);
@@ -42,12 +44,13 @@ namespace HTMLParser
 
 		public bool Fix() {
 			if (_htmlDoc != null) {
-				HtmlNodeCollection tableNodes = _htmlDoc.DocumentNode.SelectNodes("//table");
+				HtmlNodeCollection tableNodes = _htmlDoc.DocumentNode.SelectNodes(HTMLElement.HtmlRootTagSelector);
 
-				using (HTMLElement _rootElement = new HTMLElement()) {
+				using (HTMLElement rootElement = new HTMLElement()) {
 					foreach (HtmlNode tableNode in tableNodes) {
-						_rootElement.AppendNode(tableNode);
+						rootElement.AppendNode(tableNode);
 					}
+					rootElement.Fix();
 				}
 				return true;
 			} else {
