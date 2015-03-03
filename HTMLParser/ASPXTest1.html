@@ -1,0 +1,477 @@
+<%@ Reference Page="bla bla" %>
+
+<%@ Page Title="test1" Language="vb" AutoEventWireup="false" %>
+
+<asp:Content ID="Cont" ContentPlaceHolderID="cph" runat="Server">
+    <table style="width: 760px;">
+        <tr>
+            <td>
+                <table width="760">
+                    <tr>
+                        <td>
+                            <test:ToolBar ID="TlbCitasExtra" runat="server">
+                                <test:ToolBarButton Text="Nuevo" data-id="100003">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Guardar" data-id="100004">
+                                    <test:Validate Text="DatCitas2"></test:Validate>
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Eliminar" data-id="100027">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Buscar" data-id="100055" Window="WindowCitas">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Imprimir" data-id="100046">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Otros" data-id="100016" Key="Otros">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Measurements" data-id="100153" ParentKey="Otros">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Preparaciones" data-id="100154" ParentKey="Otros">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Datos Adicionales" data-id="112598" Key="Datos Adicionales" Visible="False" ParentKey="Otros">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Coberturas" data-id="131237" Key="Coberturas">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Comp. Cobertura" data-id="128969" ParentKey="Coberturas">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Buscar Coberturas" data-id="114824" ParentKey="Coberturas">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Docs. Adjuntos" data-id="145121">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Volver" data-id="101480">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Características" data-id="101621" ParentKey="Otros">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Otros Listados" data-id="101927" ParentKey="Otros">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Localización" data-id="100920" ParentKey="Otros">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Cerrar" data-id="100790" Visible="false">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Asociar Solicitud Tiss" data-id="148763" ParentKey="Otros">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Measurements Petición" data-id="148972" ParentKey="Otros">
+                                </test:ToolBarButton>
+                                <test:ToolBarButton Text="Cancelar" data-id="100095">
+                                </test:ToolBarButton>
+                            </test:ToolBar>
+                            <br />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <test:Summary ID="SumCitas2" runat="server"></test:Summary>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <test:Historia ID="UcHistoria1" runat="server" NotNull="True" PrimaryKey="False" Width="744px" VerificaRestricciones="True" VerificaExitus="True" VerificaAvisos="True" data-test="test" DataSource="DatCitas2" DataField="numorden"></test:Historia>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <test:Panel ID="Label7" GroupingText="Cita" data-id="100155" runat="server" Width="100%">
+                                <table>
+                                    <tr>
+                                        <td style="width: 150px">
+                                            <test:Label ID="LblLabels_Ix4" runat="server" Text="Consulta" data-id="100015"></test:Label>
+                                        </td>
+                                        <td colspan="3">
+                                            <test:Consultas ID="TxtConsulta" runat="server" NotNull="True" Width="590px" DataSource="DatCitas2" DataField="consulta" data-test="test" Activos="" mostrarMensajesConsulta="true" >
+                                                <AjaxFilters>
+                                                    <test:AjaxFilter NameFilter="consulta" NameControl="TxtActividad" ActivateOnFill="False" NoClear="true" >
+                                                    </test:AjaxFilter>
+                                                </AjaxFilters>
+                                            </test:Consultas>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="LblLabels_Ix8" runat="server" Text="Actividad" data-id="100118"></test:Label>
+                                        </td>
+                                        <td colspan="3">
+                                            <test:Code ID="TxtActividad" runat="server" NotNull="True" PrimaryKey="False" Width="590px" DataSource="DatCitas2" DataField="actividad" Format="Upper" AssemblyClass="Hosix.Business.Admision.Actividades" AssemblyName="Hosix.Business.Admision" DataValueField="codigo" DataTextField="descripcion" Activos="S" AssemblyMethod="ActividadesDeConsulta" data-test="test" FillGridOnStart="true">
+                                            </test:Code>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="Label1" runat="server" Text="Origen" data-id="100120"></test:Label>
+                                        </td>
+                                        <td colspan="3">
+                                            <test:Code ID="TxtOrigen" runat="server" NotNull="True" PrimaryKey="False" Width="590px" DataSource="DatCitasPeticion" DataField="idorigen" Format="Upper" AssemblyClass="Hosix.Business.Laboratorio.Origenes" AssemblyName="Hosix.Business.Laboratorio" DataValueField="idorigen" DataTextField="nombre" Activos="S" MaxLength="2" FillGridOnStart="true">
+                                            </test:Code>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="lblTipoAccidente" runat="server" Text="Tipo Acid" data-id="148795"></test:Label>
+                                        </td>
+                                        <td colspan="3">
+                                            <test:Code ID="txtTipoAccidente" runat="server" NotNull="false" PrimaryKey="False" Width="590px" DataSource="DatCitas2" DataField="idtipoaccidente" Format="Upper" AssemblyClass="Hosix.Business.Admision.Tipoaccidente" AssemblyName="Hosix.Business.Admision" DataValueField="codigo" DataTextField="descripcion" Activos="S" AssemblyMethod="Fill" data-test="test" FillGridOnStart="true">
+                                            </test:Code>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="Label4" runat="server" Text="Hospital/C.S." data-id="100156"></test:Label>
+                                        </td>
+                                        <td colspan="3">
+                                            <test:Hospitales ID="TxtHospital" Activos="S" runat="server" Width="590px" data-test="test" DataSource="DatCitasPeticion" DataField="idhospital" OnTextChanged="TxtHospital_TextChanged">
+                                            </test:Hospitales>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="LbMedico" runat="server" Text="Médico Pet." data-id="114993"></test:Label>
+                                        </td>
+                                        <td colspan="3">
+                                            <test:Medicos ID="TxtIdmedico" runat="server" Width="590px" data-test="test" DataSource="DatCitasPeticion" DataField="idmedico" ServicioEnlazado="TxtIdservicio" AllowMedicosCitasPet="true" OnTextChanged="TxtIdmedico_TextChanged">
+                                            </test:Medicos>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="lblMedicoExt" runat="server" Text=" Médico Ext." data-id="111885" Visible="false"></test:Label>
+                                        </td>
+                                        <td colspan="3">
+                                            <test:Text ID="TxtIdMedicoExt" runat="server" NotNull="False" PrimaryKey="False" Width="590px" data-test="test" DataSource="DatCitasPeticion" DataField="medicoext" Format="Upper" Visible="False" MaxLength="50" OnTextChanged="TxtIdMedicoExt_TextChanged">
+                                            </test:Text>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="LbServicio" runat="server" Text="Servicio Pet." data-id="118208"></test:Label>
+                                        </td>
+                                        <td colspan="3">
+                                            <test:Servicios ID="TxtIdservicio" runat="server" Width="590px" data-test="test" DataSource="DatCitasPeticion" DataField="idservicio" Format="Upper">
+                                            </test:Servicios>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="lblServicioExt" runat="server" Text="Servicio Ext." data-id="123015" Visible="false"></test:Label>
+                                        </td>
+                                        <td colspan="3">
+                                            <test:Text ID="TxtIDServicioExt" runat="server" NotNull="False" PrimaryKey="False" Width="590px" data-test="test" DataSource="DatCitasPeticion" DataField="servicioext" Format="Upper" Visible="False" MaxLength="50">
+                                            </test:Text>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td valign="top">
+                                            <test:Label ID="LblLabels_Ix6" runat="server" Text="Observaciones" data-id="100009"></test:Label>
+                                        </td>
+                                        <td colspan="3">
+                                            <test:Text ID="TxtObservaciones" runat="server" NotNull="False" PrimaryKey="False" Width="590px" Height="72px" DataSource="DatCitas2" DataField="comentario" Format="Upper" MaxLength="255" TextMode="MultiLine">
+                                            </test:Text>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="LblLabels_Ix7" runat="server" Text="Fecha Cita" data-id="100148"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:DateTime ID="TxtFechaCita" runat="server" NotNull="True" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="fechacita" Format="DateTime" Width="125px">
+                                            </test:DateTime>
+                                            <asp:ImageButton ID="cmdHoras" runat="server" BorderWidth="0" Height="14px" Width="14px" Style="vertical-align: text-bottom"></asp:ImageButton>
+                                        </td>
+                                        <td>
+                                            <test:Check ID="ChkCitaExtra" runat="server" DataSource="DatCitas2" DataField="extra" Text="Cita Extra" data-id="100157" TrueValue="1" FalseValue="0" DefaultValue="1" Enabled="False"></test:Check>&nbsp;
+                                        </td>
+                                        <td>
+                                            <test:Label ID="LblLabels_Ix1" runat="server" Text="Duración" data-id="100136" Enabled="False"></test:Label>&nbsp;<test:Text ID="TxtDuracion" runat="server" NotNull="False" PrimaryKey="False" Width="45px" data-test="test" DataSource="DatCitas2" DataField="duracion" Format="Int" Enabled="False"></test:Text>&nbsp;<test:Label ID="LblLabels_Ix11" runat="server" Text="minutos" data-id="100158" Enabled="False"></test:Label>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="LblLabels_Ix0" runat="server" Text="Estado" data-id="100122" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:Text ID="TxtTipoDesc" runat="server" NotNull="False" PrimaryKey="False" data-test="test" Format="None" Enabled="False" Width="125px">
+                                            </test:Text>
+                                        </td>
+                                        <td>
+                                            <test:Label ID="Label2" runat="server" Text="Fecha Recogida" data-id="100159" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:DateTime ID="TxtFechaRecogida" runat="server" NotNull="False" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="fecharecogida" Format="Date" Enabled="False">
+                                            </test:DateTime>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="LblFechaPedidaPaciente" runat="server" Text="Fecha Pedida Pac." data-id="147058"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:DateTime ID="TxtFechaPedidaPaciente" runat="server" NotNull="False" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="fechapedida" Format="Date" Enabled="True" Width="125px">
+                                            </test:DateTime>
+                                            <test:Check ID="ChkArchivo" runat="server" Text="Requerir carpeta" data-id="128970" TrueValue="1" FalseValue="0" DefaultValue="0" Visible="false" Enabled="True"></test:Check>
+                                        </td>
+                                        <td>
+                                            <test:Check ID="ChkAviso" runat="server" Text="Imprimir aviso" data-id="128971" TrueValue="1" FalseValue="0" DefaultValue="0" Enabled="True"></test:Check>
+                                        </td>
+                                        <td>
+                                            <test:Check ID="ChkMantenerPaciente" runat="server" Text="Mantener Paciente" data-id="139643" TrueValue="1" FalseValue="0" DefaultValue="0" Enabled="True"></test:Check>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                        </td>
+                                        <td>
+                                            <test:Check ID="chkNeoNato" runat="server" Text="Recién nacido" data-id="148857" TrueValue="1" FalseValue="0" DefaultValue="0" Enabled="True" DataSource="DatCitas2" DataField="neonato"></test:Check>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </test:Panel>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <test:Panel ID="Label3" GroupingText="Control de Modificaciones" data-id="100160" runat="server" Width="100%">
+                                <table style="width: 100%">
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="LblLabels_Ix2" runat="server" Text="Creado por" data-id="135263" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:Text ID="TxtUsuarioAlta" runat="server" NotNull="False" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="usuarioalta" Format="Upper" MaxLength="10" Enabled="False">
+                                            </test:Text>
+                                        </td>
+                                        <td>
+                                            <test:Label ID="LblLabels_Ix9" runat="server" Text="Fecha Creación" data-id="100020" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:DateTime ID="TxtFechaAlta" runat="server" NotNull="False" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="fechaalta" Format="DateTime" Enabled="False" Width="120px">
+                                            </test:DateTime>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="LblLabels_Ix10" runat="server" Text="Modificado por" data-id="144642" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:Text ID="TxtUsuarioMod" runat="server" NotNull="False" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="usuariomod" Format="Upper" MaxLength="10" Enabled="False">
+                                            </test:Text>
+                                        </td>
+                                        <td>
+                                            <test:Label ID="LblLabels_Ix3" runat="server" Text="Fecha Mod." data-id="100163" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:DateTime ID="TxtFechaMod" runat="server" NotNull="False" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="fechamod" Format="DateTime" Enabled="False" Width="120px">
+                                            </test:DateTime>
+                                        </td>
+                                    </tr>
+                                     <tr>
+                                        <td>
+                                            <test:Label ID="Label17" runat="server" Text="Confirmado por" data-id="149062" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:Text ID="TxtUsuarioConfirma" runat="server" NotNull="False" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="usuarioconfirma" Format="Upper" MaxLength="10" Enabled="False">
+                                            </test:Text>
+                                        </td>
+                                        <td>
+                                            <test:Label ID="Label18" runat="server" Text="Fecha Conf." data-id="127806" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:DateTime ID="TxtFechaConfirmacion" runat="server" NotNull="False" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="fechaconfirmacion" Format="DateTime" Enabled="False" Width="120px">
+                                            </test:DateTime>
+                                        </td>
+                                    </tr>
+                                     <tr>
+                                        <td>
+                                            <test:Label ID="Label19" runat="server" Text="Cancelado por" data-id="128226" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:Text ID="TxtUsuarioCancela" runat="server" NotNull="False" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="usuariocancela" Format="Upper" MaxLength="10" Enabled="False">
+                                            </test:Text>
+                                        </td>
+                                        <td>
+                                            <test:Label ID="Label20" runat="server" Text="Fecha Cancela" data-id="128131" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:DateTime ID="TxtFechaCancela" runat="server" NotNull="False" PrimaryKey="False" data-test="test" DataSource="DatCitas2" DataField="fechacancela" Format="DateTime" Enabled="False" Width="120px">
+                                            </test:DateTime>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </test:Panel>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <test:Panel ID="Label13" GroupingText="Lista de Espera de Citas" data-id="100164" runat="server" Width="100%">
+                                <table width="100%">
+                                    <tr>
+                                        <td style="width: 150px;">
+                                            <test:Label ID="Label14" runat="server" Text="Servicio" data-id="100014" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:Servicios ID="TxtServicioLec" runat="server" Width="590px" DataSource="SvDataListespcons" DataField="servicio" Enabled="False">
+                                            </test:Servicios>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="Label16" runat="server" Text="Actividad" data-id="100118" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:Code ID="TxtActividadLec" runat="server" Width="590px" DataSource="SvDataListespcons" DataField="actividad" AssemblyClass="Hosix.Business.Admision.Actividades" AssemblyName="Hosix.Business.Admision" DataTextField="descripcion" Enabled="False" Activos="S">
+                                            </test:Code>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <test:Label ID="Label15" runat="server" Text="Consulta" data-id="100015" Enabled="False"></test:Label>
+                                        </td>
+                                        <td>
+                                            <test:Consultas ID="TxtConsultaLec" runat="server" Width="590px" DataSource="SvDataListespcons" DataField="consulta" Enabled="False">
+                                            </test:Consultas>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </test:Panel>
+                            <table>
+                                <tr>
+                                    <td style="width: 100px">
+                                        <test:Window ID="WindowListespcons" runat="server" data-test="test" AssemblyClass="Hosix.Business.Admision.Listespcons" AssemblyName="Hosix.Business.Admision" FillOnStart="True" MethodName="Search">
+                                            <RemoteColums>
+                                                <test:WindowItem Field="ident" Name="ident" Control="HidIdEnt" Visible="False"></test:WindowItem>
+                                                <test:WindowItem Field="numorden" Name="Nº Historia" data-id="104927"></test:WindowItem>
+                                                <test:WindowItem Field="nombre" Name="Paciente" data-id="100061" Width="300"></test:WindowItem>
+                                                <test:WindowItem Field="servicios_codigo" Name="Servicio" data-id="100014"></test:WindowItem>
+                                                <test:WindowItem Field="consultas_codigo" Name="Consulta" data-id="100015" Control="TxtConsulta">
+                                                </test:WindowItem>
+                                                <test:WindowItem Field="mednom" Name="Medico" data-id="100119"></test:WindowItem>
+                                                <test:WindowItem Field="actividades_codigo" Name="Actividad" data-id="100118" Control="TxtActividad">
+                                                </test:WindowItem>
+                                                <test:WindowItem Field="fechaentrada" Name="Fecha Entrada" data-id="100031"></test:WindowItem>
+                                                <test:WindowItem Field="prioridad" Name="Prioridad" data-id="100618"></test:WindowItem>
+                                                <test:WindowItem Field="idorigen" Name="idorigen" Control="TxtOrigen" Visible="False">
+                                                </test:WindowItem>
+                                                <test:WindowItem Field="medico" Name="Medico" data-id="100119" Visible="False" Control="hidIdmedico">
+                                                </test:WindowItem>
+                                                <test:WindowItem Field="servicio_solicitud_codigo" Name="Serv Solicitado" data-id="147059" Control="hidIdservicio" />
+                                            </RemoteColums>
+                                        </test:Window>
+                                    </td>
+                                    <td style="width: 100px">
+                                        <test:Window ID="WindowPreparaciones" runat="server">
+                                        </test:Window>
+                                    </td>
+                                    <td style="width: 100px">
+                                        <test:Window ID="WindowEditor" runat="server" Height="600px" Pagina="~/editor.aspx" Width="800px">
+                                            <RemoteColums>
+                                                <test:WindowItem Field="HidTextoInforme" Name="HidTextoInforme" Control="HidTextoInforme">
+                                                </test:WindowItem>
+                                            </RemoteColums>
+                                        </test:Window>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 100px">
+                                        <test:Window ID="WindowMovimientos" runat="server" Width="760px" Pagina="~/Apps/fac/MostrarMovimientos.aspx" Height="550px">
+                                        </test:Window>
+                                    </td>
+                                    <td style="width: 100px">
+                                        <test:Hidden ID="HidTextoInforme" runat="server"></test:Hidden>
+                                    </td>
+                                    <td style="width: 100px">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 100px">
+                                        <test:Label ID="Label8" runat="server" Visible="False" Text="Cuest. Medicam." data-id="100171"></test:Label><test:Hidden ID="TxtNCita" runat="server" Width="40px" data-test="test" DataSource="DatCitas2" DataField="ncita">
+                                        </test:Hidden>
+                                    </td>
+                                    <td style="width: 100px">
+                                        <test:Label ID="Label5" runat="server" Visible="False" Text="Cuest. Medicam." data-id="100171"></test:Label>
+                                        <test:Hidden ID="HidBloque" runat="server" NotNull="False" PrimaryKey="False" Width="40px" data-test="test" DataSource="DatCitas2" DataField="bloque">
+                                        </test:Hidden><test:Hidden ID="TxtMinDiasCita" runat="server" NotNull="False" PrimaryKey="False" Width="40px" DataSource="DatCitas2" DataField="mindiascita">
+                                        </test:Hidden><test:Label ID="Label9" runat="server" Visible="False" Text="Cuest. Medicam." data-id="100171"></test:Label>
+                                    </td>
+                                    <td style="width: 100px">
+                                        <test:Label ID="Label10" runat="server" Visible="False" Text="Cuest. Medicam." data-id="100171"></test:Label>
+                                        <test:Hidden ID="TxtDuracionAdic" runat="server" NotNull="False" PrimaryKey="False" Width="40px" DataSource="DatCitas2" DataField="duracionadic">
+                                        </test:Hidden>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 100px">
+                                        <test:Label ID="Label11" runat="server" Visible="False" Text="Cuest. Medicam." data-id="100171"></test:Label>
+                                        <test:Hidden ID="TxtNCitaCitasPeticion" runat="server" NotNull="False" Width="40px" data-test="test" DataSource="DatCitasPeticion" DataField="ncita">
+                                        </test:Hidden>
+                                    </td>
+                                    <td style="width: 100px">
+                                        <test:Label ID="LblLabels_Ix12" runat="server" Visible="False" Text="Measurement" data-id="100170"></test:Label>
+                                        <test:Hidden ID="TxtMeasurement" runat="server" NotNull="False" PrimaryKey="False" Width="40px">
+                                        </test:Hidden>
+                                        <test:Hidden ID="TxtIdHistCuPreg" runat="server" NotNull="False" PrimaryKey="False" Width="40px" DataSource="DatCuCitas" DataField="idcuhistoria" data-test="test"></test:Hidden>
+                                        <test:Hidden ID="HidDuracionAdicPrev" runat="server" Width="40px">
+                                        </test:Hidden>
+                                        <test:Hidden ID="HidMeasurementOk" runat="server" NotNull="False" PrimaryKey="False" Width="40px" data-test="test">
+                                        </test:Hidden>
+                                    </td>
+                                    <td style="width: 100px">
+                                        <test:Label ID="LblLabels_Ix13" runat="server" Visible="False" Text="Cuest. Medicam." data-id="100171"></test:Label>
+                                        <test:Hidden ID="HidMeasurementMedOK" runat="server" NotNull="False" PrimaryKey="False" Width="40px" data-test="test">
+                                        </test:Hidden>
+                                        <test:Hidden ID="TxtIdHistCuMedica" runat="server" NotNull="False" PrimaryKey="False" Width="40px" DataSource="DatCuCitas" DataField="idcuhistoriamed">
+                                        </test:Hidden>
+                                        <test:Hidden ID="HidMinDiasCitaPrev" runat="server" Width="40px">
+                                        </test:Hidden>
+                                        <test:Hidden ID="TxtMeasurementMed" runat="server" NotNull="False" PrimaryKey="False" Width="40px" data-test="test">
+                                        </test:Hidden>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 100px">
+                                        <test:Label ID="Label12" runat="server" Visible="False" Text="Cuest. Medicam." data-id="100171"></test:Label>
+                                        <test:Hidden ID="HidIdEnt" runat="server" Width="40px" data-test="test" DataSource="SvDataListespcons" DataField="ident">
+                                        </test:Hidden>
+                                        <test:Hidden ID="TxtNCitaCuCitas" runat="server" NotNull="False" Width="40px" data-test="test" DataSource="DatCuCitas" DataField="ncita">
+                                        </test:Hidden>
+                                    </td>
+                                    <td style="width: 100px">
+                                        <test:Label ID="Label6" runat="server" Visible="False" Text="Cuest. Medicam." data-id="100171"></test:Label>
+                                        <test:Hidden ID="TxtTipo" runat="server" PrimaryKey="False" Width="40px" DataSource="DatCitas2" DataField="tipo">
+                                        </test:Hidden>
+                                    </td>
+                                    <td style="width: 100px">
+                                        <test:Hidden ID="HidMultiCitaOk" runat="server" NotNull="False" PrimaryKey="False" Width="40px" data-test="test">
+                                        </test:Hidden>
+                                        <test:Hidden ID="HidFechaCita" runat="server" NotNull="False" PrimaryKey="False" Width="40px" data-test="test">
+                                        </test:Hidden>
+                                        <test:Hidden ID="HidFechaCitaConservar" runat="server" NotNull="False" PrimaryKey="False" Width="40px" data-test="test">
+                                        </test:Hidden>
+                                        <test:Hidden ID="HidDuracion" runat="server" NotNull="False" PrimaryKey="False" Width="40px" data-test="test">
+                                        </test:Hidden>
+                                        <test:Hidden ID="MostrarMedicamentos" runat="server" NotNull="False" PrimaryKey="False" Width="40px">
+                                        </test:Hidden>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="width: 100px">
+                                    </td>
+                                    <td style="width: 100px">
+                                        <test:Hidden ID="HidWindow" runat="server" PrimaryKey="False" data-test="test"></test:Hidden>
+                                    </td>
+                                    <td style="width: 100px">
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <test:WindowModal ID="WindowMeasurement" runat="server" Width="650px" Height="400px">
+                    <Fields>
+                        <test:TransferField From="HidIdCabecera" To="TxtIdHistCuMedica"></test:TransferField>
+                    </Fields>
+                </test:WindowModal>
+            </td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        function a(e) {
+            if (!e) e = window.event;
+        }
+    </script>
+</asp:Content>
