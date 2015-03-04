@@ -46,9 +46,6 @@
     <None Include="HTMLTest1.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="ASPXTest1.html">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="TableTest1.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
