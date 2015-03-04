@@ -46,9 +46,7 @@ namespace HTMLParser
 		public void Describe() {
 			if (_htmlDoc != null) {
 				using (HTMLElement rootElement = new HTMLElement()) {
-					foreach (HtmlNode hNode in _htmlDoc.DocumentNode.ChildNodes) {
-						rootElement.AppendNode(hNode);
-					}
+					rootElement.AppendNode(_htmlDoc.DocumentNode.ChildNodes.FindFirst(HTMLElement.HtmlRootTag));
 					rootElement.Describe();
 				}
 			}
@@ -57,9 +55,7 @@ namespace HTMLParser
 		public bool Fix() {
 			if (_htmlDoc != null) {
 				using (HTMLElement rootElement = new HTMLElement()) {
-					foreach (HtmlNode hNode in _htmlDoc.DocumentNode.ChildNodes) {
-						rootElement.AppendNode(hNode);
-					}
+					rootElement.AppendNode(_htmlDoc.DocumentNode.ChildNodes.FindFirst(HTMLElement.HtmlRootTag));
 					rootElement.Fix();
 				}
 				return true;

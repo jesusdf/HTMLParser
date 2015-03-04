@@ -18,24 +18,25 @@ namespace HTMLParser
 		private HTMLElement _parent = null;
 		#endregion
 		#region Public constants
-		public const string HtmlRootTagSelector = @"//table";
-		public const string HtmlRootTag = @"table";
 		private const string TableTag = @"table";
 		private const string TrTag = @"tr";
 		private const string TdTag = @"td";
 		#if DEBUG
+		public const string HtmlRootTagSelector = @"//body";
+		public const string HtmlRootTag = @"body";
 		private const string TableTagReplacement = @"div";
 		private const string TrTagReplacement = @"div";
 		private const string TdTagReplacement = @"div";
 		private const string BootStrapAttributeName = @"class";
 		private const string BootStrapAttributeValue = @"col-xs-{0}";
 		#else
+		public const string HtmlRootTagSelector = @"//asp:Content";
+		public const string HtmlRootTag = @"asp:Content";
 		private const string TableTagReplacement = @"flex:Layout";
 		private const string TrTagReplacement = @"flex:Row";
 		private const string TdTagReplacement = @"flex:Col";
 		private const string BootStrapAttributeName = @"xs";
 		private const string BootStrapAttributeValue = @"{0}";
-		
 		
 		
 		#endif
@@ -92,7 +93,7 @@ namespace HTMLParser
 			Width = MAX_WIDTH;
 			Columns = 0;
 			hasColumns = false;
-			NestingLevel = 0;
+			NestingLevel = -1;
 		}
 
 		public void Dispose() {
@@ -270,7 +271,9 @@ namespace HTMLParser
 		/// Describes all the elements in the console.
 		/// </summary>
 		public void Describe() {
-			Console.WriteLine("{0}{1} => HasColumns: {2} Columns: {3}, Width: {4}, Value: {5}", new String('\t', this.NestingLevel), this.Tag, this.hasColumns, this.Columns, this.Width, this.Value);
+			if (this.NestingLevel >= 0) {
+				Console.WriteLine("{0}{1} => HasColumns: {2} Columns: {3}, Width: {4}, Value: {5}", new String('\t', this.NestingLevel), this.Tag, this.hasColumns, this.Columns, this.Width, this.Value);
+			}
 			foreach (HTMLElement e in ChildElements) {
 				e.Describe();
 			}
