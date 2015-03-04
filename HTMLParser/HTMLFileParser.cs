@@ -43,6 +43,17 @@ namespace HTMLParser
 
 		}
 
+		public void Describe() {
+			if (_htmlDoc != null) {
+				using (HTMLElement rootElement = new HTMLElement()) {
+					foreach (HtmlNode hNode in _htmlDoc.DocumentNode.ChildNodes) {
+						rootElement.AppendNode(hNode);
+					}
+					rootElement.Describe();
+				}
+			}
+		}
+
 		public bool Fix() {
 			if (_htmlDoc != null) {
 				using (HTMLElement rootElement = new HTMLElement()) {
@@ -64,7 +75,7 @@ namespace HTMLParser
 		public bool Save(bool makeBackup) {
 			if (_htmlDoc != null) {
 				if (makeBackup) {
-					string backupFilePath = String.Format(@"{0}.bak", FilePath);
+					string backupFilePath = String.Format(@"{0}_backup.html", FilePath);
 					if (File.Exists(backupFilePath)) {
 						File.Delete(backupFilePath);
 					}

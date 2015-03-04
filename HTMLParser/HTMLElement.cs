@@ -20,12 +20,25 @@ namespace HTMLParser
 		#region Public constants
 		public const string HtmlRootTagSelector = @"//table";
 		public const string HtmlRootTag = @"table";
-		public const string TableTag = @"table";
-		public const string TrTag = @"tr";
-		public const string TdTag = @"td";
-		public const string TableTagReplacement = @"flex:Layout";
-		public const string TrTagReplacement = @"flex:Row";
-		public const string TdTagReplacement = @"flex:Col";
+		private const string TableTag = @"table";
+		private const string TrTag = @"tr";
+		private const string TdTag = @"td";
+		#if DEBUG
+		private const string TableTagReplacement = @"div";
+		private const string TrTagReplacement = @"div";
+		private const string TdTagReplacement = @"div";
+		private const string BootStrapAttributeName = @"class";
+		private const string BootStrapAttributeValue = @"col-xs-{0}";
+		#else
+		private const string TableTagReplacement = @"flex:Layout";
+		private const string TrTagReplacement = @"flex:Row";
+		private const string TdTagReplacement = @"flex:Col";
+		private const string BootStrapAttributeName = @"xs";
+		private const string BootStrapAttributeValue = @"{0}";
+		
+		
+		
+		#endif
 		private const string StyleWidth = @"width:";
 		private const string Semicolon = @";";
 		private const string Espace = @" ";
@@ -39,7 +52,11 @@ namespace HTMLParser
 		#region Properties
 		protected bool hasColumns { get; set; }
 
+		protected string Tag { get; set; }
+
 		protected int Columns { get; set; }
+
+		protected int NestingLevel { get; set; }
 
 		protected int Width { get; set; }
 
@@ -75,6 +92,7 @@ namespace HTMLParser
 			Width = MAX_WIDTH;
 			Columns = 0;
 			hasColumns = false;
+			NestingLevel = 0;
 		}
 
 		public void Dispose() {
@@ -94,6 +112,7 @@ namespace HTMLParser
 		public void AppendNode(HtmlNode node) {
 			HTMLElement nodeElement = new HTMLElement();
 			nodeElement.Parent = this;
+			nodeElement.NestingLevel = this.NestingLevel + 1;
 			nodeElement.CalculateColumns(node);
 			RefreshColumns(nodeElement, node);
 			nodeElement.AgilityNode = node;
@@ -106,6 +125,7 @@ namespace HTMLParser
 		/// <param name="n">Node to process</param>
 		private void ProcessNode(HtmlNode n) {
 			if (n != null) {
+				this.Tag = n.Name;
 				foreach (HtmlNode c in n.ChildNodes) {
 					this.AppendNode(c);
 				}
@@ -247,6 +267,16 @@ namespace HTMLParser
 		}
 
 		/// <summary>
+		/// Describes all the elements in the console.
+		/// </summary>
+		public void Describe() {
+			Console.WriteLine("{0}{1} => HasColumns: {2} Columns: {3}, Width: {4}, Value: {5}", new String('\t', this.NestingLevel), this.Tag, this.hasColumns, this.Columns, this.Width, this.Value);
+			foreach (HTMLElement e in ChildElements) {
+				e.Describe();
+			}
+		}
+
+		/// <summary>
 		/// Changes some of the original elements into others and ammends properties
 		/// </summary>
 		public void Fix() {
@@ -256,12 +286,22 @@ namespace HTMLParser
 					if (n != null) {
 						switch (n.Name.ToLower()) {
 							case TableTag:
+#if DEBUG
+								foreach (HtmlNode c in n.ChildNodes) {
+									n.ParentNode.ChildNodes.Append(c);
+								}
+								n.Remove();
+#else
 								n.Name = TableTagReplacement;
 								CleanAttributes(n);
+#endif
 								break;
 							case TrTag:
 								n.Name = TrTagReplacement;
 								CleanAttributes(n);
+#if DEBUG
+								n.Attributes.Add("class", "row");
+#endif
 								break;
 							case TdTag:
 								n.Name = TdTagReplacement;
@@ -289,12 +329,7 @@ namespace HTMLParser
 					a = n.Attributes[i];
 					switch (a.Name.ToLower()) {
 						case WidthAttribute:
-#if DEBUG
-							a.Value = e.Value.ToString();
-							i++;
-#else
 							a.Remove();
-#endif
 							break;
 						case StyleAttribute:
 							string style = a.Value;
@@ -349,7 +384,7 @@ namespace HTMLParser
 				} else {
 					value = e.Value;
 				}
-				n.Attributes.Add("xs", value);
+				n.Attributes.Add(BootStrapAttributeName, String.Format(BootStrapAttributeValue, value));
 			}
 		}
 		#endregion

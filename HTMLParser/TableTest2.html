@@ -8,13 +8,23 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>	
 
+<style>
+	img {
+		width: 120px;
+		text-align: left;
+	}
+	input {
+		width: 100%;
+	}
+</style>
+
 </head>
 <body>
-
+<div class="container"> <!-- Added in masterpage -->
 <table style="width: 760px;">
 	<tr>
 	    <td> <!-- Image -->
-			<img Width="120px" src="icon.png" />
+			<img Width="120px" src="icon.png">
 		</td>
 		<td> <!-- Data -->
 			<table width="640px">
@@ -42,7 +52,7 @@
 						<input type="text" style="width: 25%; text-align: left" id="txtSex">
 					</td>
 					<td width="25%">
-						<input type="checkbox" style="width:25%" value="Verified" checked></input>
+						<input type="checkbox" style="width:25%" value="Verified" checked>
 					</td>
 					<td style="width: 25%">
 			            <input type="checkbox" value="Active" checked>
@@ -52,6 +62,6 @@
 	    </td>
 	</tr>
 </table>	
-
+</div>
 </body>
 </html>

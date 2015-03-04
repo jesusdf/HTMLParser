@@ -10,6 +10,9 @@ namespace HTMLParser
 			} else {
 				HTMLFileParser f = new HTMLFileParser(args[0]);
 				f.Open();
+#if DEBUG
+				f.Describe();
+#endif
 				f.Fix();
 				f.Save(makeBackup: true);
 				Console.WriteLine("Done.");
