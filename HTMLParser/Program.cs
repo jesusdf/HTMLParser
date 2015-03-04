@@ -11,7 +11,7 @@ namespace HTMLParser
 				HTMLFileParser f = new HTMLFileParser(args[0]);
 				f.Open();
 				f.Fix();
-				f.Save(makeBackup: false);
+				f.Save(makeBackup: true);
 				Console.WriteLine("Done.");
 			}
 		}

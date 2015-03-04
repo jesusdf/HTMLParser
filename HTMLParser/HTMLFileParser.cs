@@ -1,6 +1,7 @@
 using System;
 using System.Xml.XPath;
 using System.Linq;
+using System.IO;
 using HtmlAgilityPack;
 
 namespace HTMLParser
@@ -44,11 +45,9 @@ namespace HTMLParser
 
 		public bool Fix() {
 			if (_htmlDoc != null) {
-				HtmlNodeCollection tableNodes = _htmlDoc.DocumentNode.SelectNodes(HTMLElement.HtmlRootTagSelector);
-
 				using (HTMLElement rootElement = new HTMLElement()) {
-					foreach (HtmlNode tableNode in tableNodes) {
-						rootElement.AppendNode(tableNode);
+					foreach (HtmlNode hNode in _htmlDoc.DocumentNode.ChildNodes) {
+						rootElement.AppendNode(hNode);
 					}
 					rootElement.Fix();
 				}
@@ -65,7 +64,11 @@ namespace HTMLParser
 		public bool Save(bool makeBackup) {
 			if (_htmlDoc != null) {
 				if (makeBackup) {
-					System.IO.File.Copy(FilePath, String.Format(@"{0}.bak", FilePath));
+					string backupFilePath = String.Format(@"{0}.bak", FilePath);
+					if (File.Exists(backupFilePath)) {
+						File.Delete(backupFilePath);
+					}
+					File.Copy(FilePath, backupFilePath);
 				}
 				_htmlDoc.Save(FilePath);
 				return true;
