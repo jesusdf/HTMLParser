@@ -13,12 +13,14 @@ namespace HTMLParser
 	{
 		#region Private variables
 		private const int MAX_WIDTH = 760;
+        private const int DEFAULT_WIDTH = 100;
+        private const int DEFAULT_CONTROL_WIDTH = 300;
 		private const int DEFAULT_COLUMNS = 12;
-		private HtmlNode _agilityNode = null;
-		private HTMLElement _parent = null;
+        private const decimal PER_COLUMN_WIDTH = (decimal)MAX_WIDTH / (decimal)12;
         private const string TableTag = @"table";
         private const string TrTag = @"tr";
         private const string TdTag = @"td";
+        private const string InputTag = @"input";
         private const string StyleWidth = @"width:";
         private const string Semicolon = @";";
         private const string Espace = @" ";
@@ -60,7 +62,11 @@ namespace HTMLParser
 
 		protected int NestingLevel { get; set; }
 
+        protected int AvailableWidth { get; set; }
+
 		protected int Width { get; set; }
+
+        protected int AvailableValue { get; set; }
 
 		protected string Value { get; set; }
 
@@ -75,7 +81,9 @@ namespace HTMLParser
 			ChildElements = new List<HTMLElement>();
 			Parent = null;
 			Value = DEFAULT_COLUMNS.ToString();
+            AvailableValue = DEFAULT_COLUMNS;
 			Width = MAX_WIDTH;
+            AvailableWidth = Width;
 			Columns = 0;
 			hasColumns = false;
 			NestingLevel = -1;
@@ -126,7 +134,14 @@ namespace HTMLParser
 		private void ApendChildNodes() {
             HtmlNode n = this.AgilityNode;
 			if (n != null) {
-				this.Tag = n.Name;
+                if (String.IsNullOrWhiteSpace(n.Id))
+                {
+                    this.Tag = n.Name;
+                }
+                else
+                {
+                    this.Tag = String.Format("{0} ({1})", n.Name, n.Id);
+                }
 				foreach (HtmlNode c in n.ChildNodes) {
 					this.AppendNode(c);
 				}
@@ -140,10 +155,10 @@ namespace HTMLParser
         {
             this.CalculateSize();
             this.CalculateValue();
-            foreach (HTMLElement e in this.ChildElements)
-            {
-                e.Process();
-            }
+            //foreach (HTMLElement e in this.ChildElements)
+            //{
+            //    e.Process();
+            //}
         }
 
 		/// <summary>
@@ -151,39 +166,84 @@ namespace HTMLParser
 		/// </summary>
 		/// <returns>The size.</returns>
 		protected int CalculateSize() {
-			this.Width = 0;
-			if (this.AgilityNode != null) {
-				foreach (HtmlAttribute a in this.AgilityNode.Attributes) {
-					switch (a.Name.ToLower()) {
-						case WidthAttribute:
-							// We have a tag with a raw width value (in percent or pixel)
-							this.Width = ParseWidthAttribute(a.Value);
-							break;
-						case StyleAttribute:
-							// We have a style tag that may (or may not) have a width value (in percent or pixel)
-							int i = ParseStyleAttribute(a.Value);
-							if (i != 0) {
-								this.Width = i;
-							}
-							break;
-						case ColSpanAttribute:
-							// We have a colspan tag, we calculate the percent of space propotional to its parent
-
-							break;
-					}
-				}
-			}
-			if (this.Width == 0) {
-				this.Width = MAX_WIDTH;
-			}
+            int calculatedWidth = 0;
+            this.Width = this.CalculateWidth();
+            //if (this.Parent != null)
+            //{
+            //    this.Parent.AvailableWidth -= value;
+            //}
+            //if (value > MAX_WIDTH || value == 0)
+            //{
+            //    value = GetDefaultWidth(this);
+            //}
 			if (this.ChildElements.Count > 0) {
-				int calculatedWidth = 0;
+                this.AvailableWidth = this.Width;
 				foreach (HTMLElement e in ChildElements) {
 					calculatedWidth += e.CalculateSize();
 				}
 			}
-			return this.Width;
+            if (calculatedWidth > 0 && calculatedWidth <= MAX_WIDTH)
+            {
+                this.Width = calculatedWidth;
+            }
+            return this.Width;
 		}
+
+        private int CalculateWidth() {
+            int value = 0;
+            if (this.AgilityNode != null)
+            {
+                foreach (HtmlAttribute a in this.AgilityNode.Attributes)
+                {
+                    switch (a.Name.ToLower())
+                    {
+                        case WidthAttribute:
+                            // We have a tag with a raw width value (in percent or pixel)
+                            value = ParseWidthAttribute(a.Value);
+                            break;
+                        case StyleAttribute:
+                            // We have a style tag that may (or may not) have a width value (in percent or pixel)
+                            int i = ParseStyleAttribute(a.Value);
+                            if (i != 0)
+                            {
+                                value = i;
+                            }
+                            break;
+                        case ColSpanAttribute:
+                            // We have a colspan tag, we calculate the percent of space propotional to its parent
+
+                            break;
+                    }
+                }
+            }
+            if (value == 0)
+            {
+                value = GetDefaultWidth(this);
+            }
+            return value;
+        }
+
+        private int GetDefaultWidth(HTMLElement e) { 
+            HtmlNode n = e.AgilityNode;
+            if (n != null) {
+                switch (n.Name.ToLower()) {
+                    case HtmlRootTag:
+                        return MAX_WIDTH;
+                    case InputTag:
+                        return DEFAULT_CONTROL_WIDTH;
+                    default:
+                        if (e.Parent != null) 
+                        {
+                            return e.Parent.AvailableWidth;
+                        }
+                        else
+                        {
+                            return DEFAULT_WIDTH;
+                        }
+                }
+            }
+            return 0;
+        }
 
 		/// <summary>
 		/// Parses the width attribute.
@@ -191,11 +251,13 @@ namespace HTMLParser
 		/// <returns>The width in pixels</returns>
 		/// <param name="s">Width attribute value</param>
 		private int ParseWidthAttribute(string s) {
+            int value = 0;
 			if (s.ToLower().Contains(Percent)) {
-				return this.Parent.Width * (Int32.Parse(s.Replace(Percent, String.Empty)) / 100);
+				value = (int)((decimal)this.Parent.Width * (decimal)(Decimal.Parse(s.Replace(Percent, String.Empty)) / (decimal)100));
 			} else {
-				return Int32.Parse(s.Replace(Pixels, String.Empty));
+				value = Int32.Parse(s.Replace(Pixels, String.Empty));
 			}
+            return value;
 		}
 
 		/// <summary>
@@ -219,21 +281,81 @@ namespace HTMLParser
 		/// Calculates the number of BootStrap columns
 		/// </summary>
 		protected void CalculateValue() {
+            int value = CalculateSingleValue();
+            int calculatedValue = 0;
+            this.Value = value.ToString();
+            if (this.ChildElements.Count > 0)
+            {
+                this.AvailableValue = Int32.Parse(this.Value);
+                foreach (HTMLElement c in this.ChildElements)
+                {
+                    c.CalculateValue();
+                    calculatedValue += Int32.Parse(c.Value);
+                }
+                this.Value = ValueRange(calculatedValue).ToString();
+            }
+
+            //RecalculateAvailableWidth(this);
+            //if (this.Parent != null) {
+            //    RecalculateAvailableWidth(this.Parent);
+            //}
+
+            //if (this.Parent != null)
+            //{
+            //    if (this.Parent.Width == 0)
+            //    {
+            //        value = DEFAULT_COLUMNS;
+            //    }
+            //    else
+            //    {
+            //        this.Value = ((Int32)((decimal)DEFAULT_COLUMNS * ((decimal)this.Width / (decimal)this.Parent.Width))).ToString();
+            //    }
+            //}
+		}
+
+        private int CalculateSingleValue() {
             if (this.Parent != null)
             {
-                if (this.Parent.Width == 0)
-                {
-                    this.Value = DEFAULT_COLUMNS.ToString();
-                }
-                else
-                {
-                    this.Value = ((Int32)((decimal)DEFAULT_COLUMNS * ((decimal)this.Width / (decimal)this.Parent.Width))).ToString();
-                }
+                return ValueRange((int)Math.Round((decimal)this.Width / ((decimal)this.Parent.Width / (decimal)this.Parent.AvailableValue), 0, MidpointRounding.AwayFromZero));
             }
-			if (Int32.Parse(this.Value) == 0) {
-				this.Value = DEFAULT_COLUMNS.ToString();
-			}
-		}
+            else
+            {
+                return ValueRange((int)Math.Round((decimal)this.Width / PER_COLUMN_WIDTH, 0, MidpointRounding.AwayFromZero));
+            }
+        }
+
+        private int ValueRange(int value) {
+            if (value >= DEFAULT_COLUMNS)
+            {
+                value = DEFAULT_COLUMNS;
+            }
+            if (value == 0)
+            {
+                value = 1;
+            }
+            return value;
+        }
+
+        private void RecalculateAvailableValue(HTMLElement e)
+        {
+            int available = 0;
+            available = e.AvailableValue - Int32.Parse(e.Value);
+            if (available < 0)
+            {
+                available = 0;
+            }
+            e.AvailableValue = available;
+        }
+
+        private void RecalculateAvailableWidth(HTMLElement e) {
+            int available = 0;
+            available = e.AvailableWidth - (int)(Decimal.Parse(e.Value) * PER_COLUMN_WIDTH);
+            if (available < 0)
+            {
+                available = 0;
+            }
+            e.AvailableWidth = available;
+        }
 
         /// <summary>
         /// Looks for colspan attribute.
@@ -273,9 +395,15 @@ namespace HTMLParser
                         {
                             if (e.AgilityNode != null)
                             {
-                                if (e.AgilityNode.Name.ToLower() == TdTag)
+                                if (HasColumnValues(e.AgilityNode))
                                 {
                                     columnNumber += e.Columns;
+                                }
+                                else {
+                                    if (columnNumber < e.Columns)
+                                    {
+                                        columnNumber = e.Columns;
+                                    }
                                 }
                             }
                         }
@@ -306,6 +434,17 @@ namespace HTMLParser
             return false;
         }
 
+        private bool HasColumnValues(HtmlNode n)
+        {
+            switch (n.Name.ToLower())
+            {
+                case TdTag:
+                    return true;
+                    break;
+            }
+            return false;
+        }
+
 		/// <summary>
 		/// Describes all the elements in the console.
 		/// </summary>
@@ -315,7 +454,7 @@ namespace HTMLParser
                 this.Process();
             }
 			if (this.NestingLevel >= 0) {
-				sb.AppendFormat("{0}{1} => HasColumns: {2} Columns: {3}, Width: {4}, Value: {5}\r\n", new String('\t', this.NestingLevel), this.Tag, this.hasColumns, this.Columns, this.Width, this.Value);
+				sb.AppendFormat("{0}{1} => HasColumns: {2} Columns: {3}, Width: {4}, AvailableWidth: {5}, AvailableValue: {6}, Value: {7}\r\n", new String('\t', this.NestingLevel), this.Tag, this.hasColumns, this.Columns, this.Width, this.AvailableWidth, this.AvailableValue, this.Value);
 			}
 			foreach (HTMLElement e in ChildElements) {
 				e.Describe(sb);
@@ -428,14 +567,8 @@ namespace HTMLParser
 		/// <param name="e">Element</param>
 		private static void SetColAttributes(HTMLElement e) {
 			HtmlNode n = e.AgilityNode;
-			string value;
 			if (n != null) {
-				if (e.Parent.Columns > 1) {
-					value = ((int)((decimal)DEFAULT_COLUMNS * ((decimal)e.Columns / (decimal)e.Parent.Columns))).ToString();
-				} else {
-					value = e.Value;
-				}
-				n.Attributes.Add(BootStrapAttributeName, String.Format(BootStrapAttributeValue, value));
+				n.Attributes.Add(BootStrapAttributeName, String.Format(BootStrapAttributeValue, e.Value));
 			}
 		}
 		#endregion
