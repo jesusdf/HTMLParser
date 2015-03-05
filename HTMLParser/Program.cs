@@ -11,7 +11,7 @@ namespace HTMLParser
 				HTMLFileParser f = new HTMLFileParser(args[0]);
 				f.Open();
 #if DEBUG
-				f.Describe();
+				f.Describe("log.txt");
 #endif
 				f.Fix();
 				f.Save(makeBackup: true);

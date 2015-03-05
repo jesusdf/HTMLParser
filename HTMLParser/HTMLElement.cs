@@ -16,39 +16,40 @@ namespace HTMLParser
 		private const int DEFAULT_COLUMNS = 12;
 		private HtmlNode _agilityNode = null;
 		private HTMLElement _parent = null;
-		#endregion
-		#region Public constants
-		private const string TableTag = @"table";
-		private const string TrTag = @"tr";
-		private const string TdTag = @"td";
-		#if DEBUG
-		public const string HtmlRootTagSelector = @"//body";
-		public const string HtmlRootTag = @"body";
-		private const string TableTagReplacement = @"div";
-		private const string TrTagReplacement = @"div";
-		private const string TdTagReplacement = @"div";
-		private const string BootStrapAttributeName = @"class";
-		private const string BootStrapAttributeValue = @"col-xs-{0}";
-		#else
-		public const string HtmlRootTagSelector = @"//asp:Content";
-		public const string HtmlRootTag = @"asp:Content";
+        private const string TableTag = @"table";
+        private const string TrTag = @"tr";
+        private const string TdTag = @"td";
+        private const string StyleWidth = @"width:";
+        private const string Semicolon = @";";
+        private const string Espace = @" ";
+        private const string Tabulator = "\t";
+        private const string Percent = @"%";
+        private const string Pixels = @"px";
+        private const string WidthAttribute = @"width";
+        private const string StyleAttribute = @"style";
+        private const string ColSpanAttribute = @"colspan";
+#if DEBUG
+        private const string TableTagReplacement = @"div";
+        private const string TrTagReplacement = @"div";
+        private const string TdTagReplacement = @"div";
+        private const string BootStrapAttributeName = @"class";
+        private const string BootStrapAttributeValue = @"col-xs-{0}";
+#else
 		private const string TableTagReplacement = @"flex:Layout";
 		private const string TrTagReplacement = @"flex:Row";
 		private const string TdTagReplacement = @"flex:Col";
 		private const string BootStrapAttributeName = @"xs";
 		private const string BootStrapAttributeValue = @"{0}";
-		
-		
-		#endif
-		private const string StyleWidth = @"width:";
-		private const string Semicolon = @";";
-		private const string Espace = @" ";
-		private const string Tabulator = "\t";
-		private const string Percent = @"%";
-		private const string Pixels = @"px";
-		private const string WidthAttribute = @"width";
-		private const string StyleAttribute = @"style";
-		private const string ColSpanAttribute = @"colspan";
+#endif
+		#endregion
+		#region Public constants
+#if DEBUG
+        public const string HtmlRootTagSelector = @"//body";
+        public const string HtmlRootTag = @"body";
+#else
+		public const string HtmlRootTagSelector = @"//asp:Content";
+		public const string HtmlRootTag = @"asp:Content";
+#endif
 		#endregion
 		#region Properties
 		protected bool hasColumns { get; set; }
@@ -63,25 +64,9 @@ namespace HTMLParser
 
 		protected string Value { get; set; }
 
-		protected HtmlNode AgilityNode { 
-			get {
-				return _agilityNode;
-			}
-			set {
-				_agilityNode = value;
-				// Once this Element is linked with an HTML Node, I process it to extract all information I need.
-				ProcessNode(_agilityNode);
-			}
-		}
+        protected HtmlNode AgilityNode { get; set; }
 
-		protected HTMLElement Parent { 
-			get {
-				return _parent;
-			} 
-			set {
-				_parent = value;
-			}
-		}
+        protected HTMLElement Parent { get; set; }
 
 		protected List<HTMLElement> ChildElements { get; set; }
 		#endregion
@@ -101,39 +86,65 @@ namespace HTMLParser
 			Parent = null;
 		}
 
-		public void AppendChildElement(HTMLElement child) {
-			Columns += child.Columns;
-			ChildElements.Add(child);
-		}
-
 		/// <summary>
 		/// Appends an HTML node.
 		/// </summary>
 		/// <param name="node">Node</param>
 		public void AppendNode(HtmlNode node) {
-			HTMLElement nodeElement = new HTMLElement();
-			nodeElement.Parent = this;
-			nodeElement.NestingLevel = this.NestingLevel + 1;
-			nodeElement.CalculateColumns(node);
-			RefreshColumns(nodeElement, node);
-			nodeElement.AgilityNode = node;
-			ChildElements.Add(nodeElement);
+            if (IsValidNodeType(node))
+            {
+                ChildElements.Add(new HTMLElement());
+                HTMLElement nodeElement = this.ChildElements.Last();
+			    nodeElement.Parent = this;
+			    nodeElement.NestingLevel = this.NestingLevel + 1;
+			    nodeElement.AgilityNode = node;
+                nodeElement.ApendChildNodes();
+                nodeElement.CalculateColumns();
+            }
 		}
 
+        /// <summary>
+        /// We should ignore certain node types.
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        private bool IsValidNodeType(HtmlNode node) {
+            if (node != null)
+            {
+                return (
+                        (node.GetType() != typeof(HtmlTextNode)) &&
+                        (node.GetType() != typeof(HtmlCommentNode))
+                       );
+            } else {
+                return false;
+            }
+        }
+
 		/// <summary>
-		/// Calculates sizes, values and appends children nodes.
+		/// Appends children nodes.
 		/// </summary>
-		/// <param name="n">Node to process</param>
-		private void ProcessNode(HtmlNode n) {
+		private void ApendChildNodes() {
+            HtmlNode n = this.AgilityNode;
 			if (n != null) {
 				this.Tag = n.Name;
 				foreach (HtmlNode c in n.ChildNodes) {
 					this.AppendNode(c);
 				}
-				CalculateSize();
-				CalculateValue();
 			}
 		}
+
+        /// <summary>
+        /// Calculates sizes and values.
+        /// </summary>
+        protected void Process()
+        {
+            this.CalculateSize();
+            this.CalculateValue();
+            foreach (HTMLElement e in this.ChildElements)
+            {
+                e.Process();
+            }
+        }
 
 		/// <summary>
 		/// Calculates the size in pixels, relative to it's parent.
@@ -208,23 +219,27 @@ namespace HTMLParser
 		/// Calculates the number of BootStrap columns
 		/// </summary>
 		protected void CalculateValue() {
-			if (this.Parent.Width == 0) {
-				this.Value = DEFAULT_COLUMNS.ToString();
-			} else {
-				this.Value = ((Int32)((decimal)DEFAULT_COLUMNS * ((decimal)this.Width / (decimal)this.Parent.Width))).ToString();
-			}
+            if (this.Parent != null)
+            {
+                if (this.Parent.Width == 0)
+                {
+                    this.Value = DEFAULT_COLUMNS.ToString();
+                }
+                else
+                {
+                    this.Value = ((Int32)((decimal)DEFAULT_COLUMNS * ((decimal)this.Width / (decimal)this.Parent.Width))).ToString();
+                }
+            }
 			if (Int32.Parse(this.Value) == 0) {
 				this.Value = DEFAULT_COLUMNS.ToString();
 			}
 		}
 
-		/// <summary>
-		/// Calculates the number of columns that this Element uses (think in <c><td colspan="2"></td></c>)
-		/// </summary>
-		protected void CalculateColumns(HtmlNode n) {
-			this.Columns = GetColumns(n);
-		}
-
+        /// <summary>
+        /// Looks for colspan attribute.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
 		private static int GetColumns(HtmlNode n) {
 			if (n != null) {
 				foreach (HtmlAttribute a in n.Attributes) {
@@ -237,45 +252,73 @@ namespace HTMLParser
 			return 1;
 		}
 
-		/// <summary>
-		/// Reloads the number of columns from its child elements
-		/// </summary>
-		private void RefreshColumns(HTMLElement el, HtmlNode node) {
+        /// <summary>
+        /// Calculates the number of columns from its child elements
+        /// </summary>
+        /// <param name="el">Child Element</param>
+        /// <param name="node">Child Node</param>
+        private void CalculateColumns()
+        {
 			HtmlNode n = this.AgilityNode;
+            int columnNumber = 0;
 			if (n == null) {
 				this.hasColumns = false;
 				this.Columns = 1;
 			} else {
-				this.hasColumns = (n.Name.ToLower() == TrTag);
+                this.hasColumns = HasColumns(n);
 				if (this.hasColumns) {
-					this.Columns = 0;
-					if (node != null) {
-						if (node.Name.ToLower() == TdTag) {
-							this.Columns = el.Columns;
-						}
-					}
-					foreach (HTMLElement e in ChildElements) {
-						if (e.AgilityNode != null) {
-							if (e.AgilityNode.Name.ToLower() == TdTag) {
-								this.Columns += e.Columns;
-							}
-						}
-					}
+                    if (this.ChildElements.Count > 0)
+                    {
+                        foreach (HTMLElement e in this.ChildElements)
+                        {
+                            if (e.AgilityNode != null)
+                            {
+                                if (e.AgilityNode.Name.ToLower() == TdTag)
+                                {
+                                    columnNumber += e.Columns;
+                                }
+                            }
+                        }
+                    } else {
+                        columnNumber = GetColumns(this.AgilityNode);
+                    }
 				} else {
-					this.Columns = 1;
+                    columnNumber = GetColumns(this.AgilityNode);
 				}
+                if (this.Columns < columnNumber)
+                {
+                    this.Columns = columnNumber;
+                    if (this.Parent != null)
+                    {
+                        this.Parent.CalculateColumns();
+                    }
+                }
 			}
 		}
+
+        private bool HasColumns(HtmlNode n) {
+            switch (n.Name.ToLower()) {
+                case TableTag:
+                case TrTag:
+                    return true;
+                    break;
+            }
+            return false;
+        }
 
 		/// <summary>
 		/// Describes all the elements in the console.
 		/// </summary>
-		public void Describe() {
+		public void Describe(StringBuilder sb) {
+            if (this.Parent == null)
+            {
+                this.Process();
+            }
 			if (this.NestingLevel >= 0) {
-				Console.WriteLine("{0}{1} => HasColumns: {2} Columns: {3}, Width: {4}, Value: {5}", new String('\t', this.NestingLevel), this.Tag, this.hasColumns, this.Columns, this.Width, this.Value);
+				sb.AppendFormat("{0}{1} => HasColumns: {2} Columns: {3}, Width: {4}, Value: {5}\r\n", new String('\t', this.NestingLevel), this.Tag, this.hasColumns, this.Columns, this.Width, this.Value);
 			}
 			foreach (HTMLElement e in ChildElements) {
-				e.Describe();
+				e.Describe(sb);
 			}
 		}
 
@@ -283,13 +326,18 @@ namespace HTMLParser
 		/// Changes some of the original elements into others and ammends properties
 		/// </summary>
 		public void Fix() {
-			if (ChildElements.Count() > 0) {
+            if (this.Parent == null)
+            {
+                this.Process();
+            }
+			if (this.ChildElements.Count() > 0) {
 				foreach (HTMLElement e in ChildElements) {
 					HtmlNode n = e.AgilityNode;
 					if (n != null) {
 						switch (n.Name.ToLower()) {
 							case TableTag:
 #if DEBUG
+                                // Add all its children to the parent node and remove it
 								foreach (HtmlNode c in n.ChildNodes) {
 									n.ParentNode.ChildNodes.Append(c);
 								}
