@@ -53,12 +53,49 @@ namespace HTMLParser
 		public const string HtmlRootTag = @"asp:Content";
 #endif
 		#endregion
-		#region Properties
-		protected bool hasColumns { get; set; }
+        #region Helper Classes
+        protected class ColumnInfo {
+            public List<int> Items;
+            public int Count { 
+                get
+                {
+                    return Items.Count();
+                }
+                set
+                {
+                    List<int> l = new List<int>(value);
+                    for (int i = 0; i < value; i++) {
+                        if (i < Items.Count())
+                        {
+                            l.Add(Items[0]);
+                        }
+                        else
+                        {
+                            l.Add(0);
+                        }
+                    }
+                    Items = l;
+                }
+            }
+            public ColumnInfo() {
+                Items = new List<int>();
+            }
+            public string Describe() {
+                StringBuilder sb = new StringBuilder();
+                foreach (int i in Items) {
+                    sb.Append(String.Format("{0} ", i));
+                }
+                return sb.ToString().TrimEnd();
+            }
+        }
+        #endregion
+        #region Properties
+
+        protected bool hasColumns { get; set; }
 
 		protected string Tag { get; set; }
 
-		protected int Columns { get; set; }
+		protected ColumnInfo Columns { get; set; }
 
 		protected int NestingLevel { get; set; }
 
@@ -84,7 +121,7 @@ namespace HTMLParser
             AvailableValue = DEFAULT_COLUMNS;
 			Width = MAX_WIDTH;
             AvailableWidth = Width;
-			Columns = 0;
+			Columns = new ColumnInfo();
 			hasColumns = false;
 			NestingLevel = -1;
 		}
@@ -153,12 +190,12 @@ namespace HTMLParser
         /// </summary>
         protected void Process()
         {
+            // Tries to read or guess actual size in pixels of every element
             this.CalculateSize();
+            // Calculate each column width looking in every row
+            this.CalculateColumnWidth();
+            // Sets the corresponding BootStrap columns based on the previous data
             this.CalculateValue();
-            //foreach (HTMLElement e in this.ChildElements)
-            //{
-            //    e.Process();
-            //}
         }
 
 		/// <summary>
@@ -167,29 +204,41 @@ namespace HTMLParser
 		/// <returns>The size.</returns>
 		protected int CalculateSize() {
             int calculatedWidth = 0;
-            this.Width = this.CalculateWidth();
-            //if (this.Parent != null)
-            //{
-            //    this.Parent.AvailableWidth -= value;
-            //}
-            //if (value > MAX_WIDTH || value == 0)
-            //{
-            //    value = GetDefaultWidth(this);
-            //}
-			if (this.ChildElements.Count > 0) {
-                this.AvailableWidth = this.Width;
-				foreach (HTMLElement e in ChildElements) {
-					calculatedWidth += e.CalculateSize();
-				}
-			}
-            if (calculatedWidth > 0 && calculatedWidth <= MAX_WIDTH)
+            int value = 0;
+            // Rows have the same width as its container
+            value = this.GetWidth();
+            if (value == 0)
+            {
+                if ((this.Parent != null) && (HasColumns(this.AgilityNode) && !IsContainer(this.AgilityNode)))
+                {
+                    value = this.Parent.Width;
+                }
+                else
+                {
+                    value = GetDefaultWidth(this);
+                }
+            }
+            this.Width = value;
+            this.AvailableWidth = this.Width;
+            if (this.ChildElements.Any())
+            {
+                foreach (HTMLElement e in ChildElements)
+                {
+                    calculatedWidth += e.CalculateSize();
+                }
+            }
+            if (calculatedWidth > 0 && calculatedWidth <= MAX_WIDTH && !((HasColumns(this.AgilityNode) && !IsContainer(this.AgilityNode))))
             {
                 this.Width = calculatedWidth;
+            }
+            this.AvailableWidth -= this.Width;
+            if (this.AvailableWidth < 0) {
+                this.AvailableWidth = 0;
             }
             return this.Width;
 		}
 
-        private int CalculateWidth() {
+        private int GetWidth() {
             int value = 0;
             if (this.AgilityNode != null)
             {
@@ -216,33 +265,47 @@ namespace HTMLParser
                     }
                 }
             }
-            if (value == 0)
-            {
-                value = GetDefaultWidth(this);
-            }
             return value;
         }
 
         private int GetDefaultWidth(HTMLElement e) { 
             HtmlNode n = e.AgilityNode;
+            int value = 0;
             if (n != null) {
                 switch (n.Name.ToLower()) {
                     case HtmlRootTag:
-                        return MAX_WIDTH;
+                        value = MAX_WIDTH;
+                        break;
                     case InputTag:
-                        return DEFAULT_CONTROL_WIDTH;
+                        value = DEFAULT_CONTROL_WIDTH;
+                        break;
                     default:
-                        if (e.Parent != null) 
+                        //if (e.Parent != null) 
+                        //{
+                        //    return e.Parent.AvailableWidth;
+                        //}
+                        //else
+                        //{
+                        //    return DEFAULT_WIDTH;
+                        //}
+                        if (e.Parent != null)
                         {
-                            return e.Parent.AvailableWidth;
+                            if (e.Parent.AvailableWidth < DEFAULT_WIDTH)
+                            {
+                                value = e.Parent.AvailableWidth;
+                            }
+                            else {
+                                value = DEFAULT_WIDTH;
+                            }
                         }
                         else
                         {
-                            return DEFAULT_WIDTH;
+                            value = DEFAULT_WIDTH;
                         }
+                        break;
                 }
             }
-            return 0;
+            return value;
         }
 
 		/// <summary>
@@ -316,13 +379,16 @@ namespace HTMLParser
         private int CalculateSingleValue() {
             if (this.Parent != null)
             {
-                return ValueRange((int)Math.Round((decimal)this.Width / ((decimal)this.Parent.Width / (decimal)this.Parent.AvailableValue), 0, MidpointRounding.AwayFromZero));
+                int width = (this.Parent.Width > 0 ? this.Parent.Width : 1);
+                int available = (this.Parent.AvailableValue > 0 ? this.Parent.AvailableValue : 1);
+                return ValueRange((int)Math.Round((decimal)this.Width / ((decimal)width / (decimal)available), 0, MidpointRounding.AwayFromZero));
             }
             else
             {
                 return ValueRange((int)Math.Round((decimal)this.Width / PER_COLUMN_WIDTH, 0, MidpointRounding.AwayFromZero));
             }
         }
+
 
         private int ValueRange(int value) {
             if (value >= DEFAULT_COLUMNS)
@@ -374,22 +440,20 @@ namespace HTMLParser
 			return 1;
 		}
 
-        /// <summary>
-        /// Calculates the number of columns from its child elements
-        /// </summary>
-        /// <param name="el">Child Element</param>
-        /// <param name="node">Child Node</param>
+		/// <summary>
+		/// Calculates the number of columns from its child elements
+		/// </summary>
         private void CalculateColumns()
         {
 			HtmlNode n = this.AgilityNode;
             int columnNumber = 0;
 			if (n == null) {
 				this.hasColumns = false;
-				this.Columns = 1;
+				this.Columns.Count = 1;
 			} else {
                 this.hasColumns = HasColumns(n);
 				if (this.hasColumns) {
-                    if (this.ChildElements.Count > 0)
+                    if (this.ChildElements.Any())
                     {
                         foreach (HTMLElement e in this.ChildElements)
                         {
@@ -397,12 +461,12 @@ namespace HTMLParser
                             {
                                 if (HasColumnValues(e.AgilityNode))
                                 {
-                                    columnNumber += e.Columns;
+                                    columnNumber += e.Columns.Count;
                                 }
                                 else {
-                                    if (columnNumber < e.Columns)
+                                    if (columnNumber < e.Columns.Count)
                                     {
-                                        columnNumber = e.Columns;
+                                        columnNumber = e.Columns.Count;
                                     }
                                 }
                             }
@@ -413,9 +477,9 @@ namespace HTMLParser
 				} else {
                     columnNumber = GetColumns(this.AgilityNode);
 				}
-                if (this.Columns < columnNumber)
+                if (this.Columns.Count < columnNumber)
                 {
-                    this.Columns = columnNumber;
+                    this.Columns.Count = columnNumber;
                     if (this.Parent != null)
                     {
                         this.Parent.CalculateColumns();
@@ -424,23 +488,115 @@ namespace HTMLParser
 			}
 		}
 
+        /// <summary>
+        /// Parses columns to get the real width based on maximum width per row.
+        /// </summary>
+        private void CalculateColumnWidth()
+        {
+            HtmlNode n = this.AgilityNode;
+            int i = 0;
+            if (this.ChildElements.Any())
+            {
+                foreach (HTMLElement tr in this.ChildElements)
+                {
+                    if (IsContainer(n))
+                    {
+                        i = 0;
+                        HtmlNode nc = tr.AgilityNode;
+                        if (nc != null)
+                        {
+                            if (IsRow(nc))
+                            {
+                                if (tr.ChildElements.Any())
+                                {
+                                    foreach (HTMLElement td in tr.ChildElements)
+                                    {
+                                        if (HasColumnValues(td.AgilityNode))
+                                        {
+                                            if (this.Columns.Items[i] < td.Width)
+                                            {
+                                                this.Columns.Items[i] = td.Width;
+                                            }
+                                            i += td.Columns.Count;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    tr.CalculateColumnWidth();
+                }
+            }
+        }
+		
+        /// <summary>
+        /// Gets whether the node has columns or not.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         private bool HasColumns(HtmlNode n) {
-            switch (n.Name.ToLower()) {
-                case TableTag:
-                case TrTag:
-                    return true;
-                    break;
+            if (n != null)
+            {
+                switch (n.Name.ToLower())
+                {
+                    case TableTag:
+                    case TrTag:
+                        return true;
+                }
             }
             return false;
         }
 
+        /// <summary>
+        /// Gets whether the node may ocuppy more than one column (colspan).
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
         private bool HasColumnValues(HtmlNode n)
         {
-            switch (n.Name.ToLower())
+            if (n != null)
             {
-                case TdTag:
-                    return true;
-                    break;
+                switch (n.Name.ToLower())
+                {
+                    case TdTag:
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Gets whether the node is a row or not.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        private bool IsContainer(HtmlNode n)
+        {
+            if (n != null)
+            {
+                switch (n.Name.ToLower())
+                {
+                    case TableTag:
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Gets whether the node is a row or not.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        private bool IsRow(HtmlNode n)
+        {
+            if (n != null)
+            {
+                switch (n.Name.ToLower())
+                {
+                    case TrTag:
+                        return true;
+                }
             }
             return false;
         }
@@ -454,12 +610,16 @@ namespace HTMLParser
                 this.Process();
             }
 			if (this.NestingLevel >= 0) {
-				sb.AppendFormat("{0}{1} => HasColumns: {2} Columns: {3}, Width: {4}, AvailableWidth: {5}, AvailableValue: {6}, Value: {7}\r\n", new String('\t', this.NestingLevel), this.Tag, this.hasColumns, this.Columns, this.Width, this.AvailableWidth, this.AvailableValue, this.Value);
+                sb.AppendFormat("{0}{1} => {2}", new String('\t', this.NestingLevel), this.Tag, GetDescription());
 			}
 			foreach (HTMLElement e in ChildElements) {
 				e.Describe(sb);
 			}
 		}
+
+        private string GetDescription() {
+            return String.Format("HasColumns: {0}, Columns: {1}{2}, Width: {3}, AvailableWidth: {4}, AvailableValue: {5}, Value: {6}\r\n", this.hasColumns, this.Columns.Count, IsContainer(this.AgilityNode) ? String.Format(" ({0})", this.Columns.Describe()) : String.Empty, this.Width, this.AvailableWidth, this.AvailableValue, this.Value);
+        }
 
 		/// <summary>
 		/// Changes some of the original elements into others and ammends properties
@@ -469,7 +629,7 @@ namespace HTMLParser
             {
                 this.Process();
             }
-			if (this.ChildElements.Count() > 0) {
+			if (this.ChildElements.Any()) {
 				foreach (HTMLElement e in ChildElements) {
 					HtmlNode n = e.AgilityNode;
 					if (n != null) {
@@ -556,7 +716,7 @@ namespace HTMLParser
 		/// </summary>
 		/// <param name="n">Node to remove all attributes</param>
 		private static void CleanAttributes(HtmlNode n) {
-			while (n.Attributes.Count() > 0) {
+			while (n.Attributes.Any()) {
 				n.Attributes[0].Remove();
 			}
 		}
