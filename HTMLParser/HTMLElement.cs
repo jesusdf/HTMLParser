@@ -20,19 +20,16 @@ namespace HTMLParser
 		private const string TdTagReplacement = @"div";
 		private const string BootStrapAttributeName = @"class";
 		private const string BootStrapAttributeValue = @"col-xs-{0}";
+		public const string HtmlRootTagSelector = @"//body";
+		public const string HtmlRootTag = @"body";
 		#else
 		private const string TableTagReplacement = @"flex:Layout";
 		private const string TrTagReplacement = @"flex:Row";
 		private const string TdTagReplacement = @"flex:Col";
 		private const string BootStrapAttributeName = @"xs";
 		private const string BootStrapAttributeValue = @"{0}";
-		
-		
-		
-		
-		
-		
-		
+		public const string HtmlRootTagSelector = @"//asp:Content";
+		public const string HtmlRootTag = @"asp:Content";
 		
 		#endif
 		#region Private variables
@@ -58,86 +55,6 @@ namespace HTMLParser
 		private const string WidthAttribute = @"width";
 		private const string StyleAttribute = @"style";
 		private const string ColSpanAttribute = @"colspan";
-		#endregion
-		#region Public constants
-		#if DEBUG
-		public const string HtmlRootTagSelector = @"//body";
-		public const string HtmlRootTag = @"body";
-		#else
-		public const string HtmlRootTagSelector = @"//asp:Content";
-		public const string HtmlRootTag = @"asp:Content";
-
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		#endif
 		#endregion
 		#region Helper Classes
 		protected class ColumnInfo
@@ -395,7 +312,11 @@ namespace HTMLParser
 							if (e.Parent.AvailableWidth < DEFAULT_WIDTH) {
 								value = e.Parent.AvailableWidth;
 							} else {
-								value = DEFAULT_WIDTH;
+								if (e.Parent.Width != 0 && !IsRow(e.Parent.AgilityNode) && !IsContainer(e.Parent.AgilityNode)) {
+									value = e.Parent.Width;
+								} else {
+									value = DEFAULT_WIDTH;
+								}
 							}
 						} else {
 							value = DEFAULT_WIDTH;
@@ -446,8 +367,6 @@ namespace HTMLParser
 			int value = 0;
 			int calculatedValue = 0;
 			if (this.ChildElements.Count > 0) {
-
-				// Calculate everything per row
 				value = CalculateSingleValueByRow();
 				this.Value = value;
 				foreach (HTMLElement c in this.ChildElements) {
@@ -473,18 +392,37 @@ namespace HTMLParser
 		/// </summary>
 		protected void CalculateValueByContainer() {
 			HtmlNode n = this.AgilityNode;
-			int value = 0;
 			int calculatedValue = 0;
-			if (this.ChildElements.Count > 0) {
-				// Always look for container sizes
-				if (n != null && IsContainer(n)) {
-
-				}
-				foreach (HTMLElement c in this.ChildElements) {
-					c.CalculateValueByContainer();
-					if (IsColumn(c.AgilityNode)) {
-						calculatedValue += c.Value;
+			int i = 0;
+			if (this.ChildElements.Any()) {
+				foreach (HTMLElement tr in this.ChildElements) {
+					if (IsContainer(n)) {
+						i = 0;
+						calculatedValue = 0;
+						HtmlNode nc = tr.AgilityNode;
+						if (nc != null) {
+							if (IsRow(nc)) {
+								if (tr.ChildElements.Any()) {
+									foreach (HTMLElement td in tr.ChildElements) {
+										if (IsColumn(td.AgilityNode)) {
+											td.Value = CalculateSingleValueByContainer(td, i++);
+											calculatedValue += td.Value;
+										}
+									}
+									calculatedValue -= DEFAULT_COLUMNS;
+									if (calculatedValue > 0) {
+										// We have exceeded the maximum number of columns, step back from the last column
+										for (int j = tr.ChildElements.Count - 1; j > 0 && calculatedValue > 0; j--) {
+											HTMLElement c = tr.ChildElements[j];
+											c.Value--;
+											calculatedValue--;
+										}
+									}
+								}
+							}
+						}
 					}
+					tr.CalculateValueByContainer();
 				}
 			}
 		}
@@ -511,18 +449,13 @@ namespace HTMLParser
 		/// Calculates a single element Value per container.
 		/// </summary>
 		/// <returns>The single value.</returns>
-		private int CalculateSingleValueByContainer() {
-			if (this.Parent != null) {
-				int parentWidth = (this.Parent.Width > 0 ? this.Parent.Width : 1);
-				decimal percent = ((decimal)this.Width / (decimal)parentWidth);
-				decimal calculatedCols = (decimal)DEFAULT_COLUMNS * percent;
-				//int parentAvailable = (this.Parent.AvailableValue > 0 ? this.Parent.AvailableValue : 1);
-				//return ValueRange((int)Math.Round((decimal)this.Width / ((decimal)parentWidth / (decimal)parentAvailable), 0, MidpointRounding.AwayFromZero));
-				return ValueRange((int)Math.Round(calculatedCols, 0, MidpointRounding.AwayFromZero));
-			} else {
-				//return ValueRange((int)Math.Round((decimal)this.Width / PER_COLUMN_WIDTH, 0, MidpointRounding.AwayFromZero));
-				return DEFAULT_COLUMNS;
-			}
+		private int CalculateSingleValueByContainer(HTMLElement e, int columnNumber) {
+			int parentWidth = (this.Width > 0 ? this.Width : 1);
+			decimal percent = ((decimal)this.Columns.Items[columnNumber] / (decimal)parentWidth);
+			decimal calculatedCols = (decimal)DEFAULT_COLUMNS * percent;
+			//int parentAvailable = (this.Parent.AvailableValue > 0 ? this.Parent.AvailableValue : 1);
+			//return ValueRange((int)Math.Round((decimal)this.Width / ((decimal)parentWidth / (decimal)parentAvailable), 0, MidpointRounding.AwayFromZero));
+			return ValueRange((int)Math.Round(calculatedCols, 0, MidpointRounding.AwayFromZero));
 		}
 
 		/// <summary>
@@ -621,8 +554,28 @@ namespace HTMLParser
 								}
 							}
 						}
+						ScalateColumnWidths();
 					}
 					tr.CalculateColumnWidth();
+				}
+			}
+		}
+
+		/// <summary>
+		/// Scalates the column widths if they are greater than the maximum.
+		/// </summary>
+		private void ScalateColumnWidths() {
+			int currentSize = 0;
+			decimal scaleFactor = 0;
+			if (IsContainer(this.AgilityNode)) {
+				for (int i = 0; i< this.Columns.Count; i++) {
+					currentSize += this.Columns.Items[i];
+				}
+				if (currentSize > MAX_WIDTH) {
+					scaleFactor = (decimal)MAX_WIDTH / (decimal)currentSize;
+					for (int i = 0; i< this.Columns.Count; i++) {
+						this.Columns.Items[i] = (int)Math.Round((decimal)this.Columns.Items[i] * scaleFactor, 0, MidpointRounding.AwayFromZero);
+					}
 				}
 			}
 		}
