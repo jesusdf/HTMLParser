@@ -6,7 +6,6 @@ using HtmlAgilityPack;
 using System.Text;
 using System.Reflection;
 using System.Collections.ObjectModel;
-using Mono.Security.X509;
 using System.Runtime.InteropServices;
 
 namespace HTMLParser
