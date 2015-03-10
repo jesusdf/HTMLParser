@@ -7,14 +7,41 @@ using System.Text;
 using System.Reflection;
 using System.Collections.ObjectModel;
 using Mono.Security.X509;
+using System.Runtime.InteropServices;
 
 namespace HTMLParser
 {
 	public class HTMLElement : IDisposable
 	{
+
+		#if DEBUG
+		private const string TableTagReplacement = @"div";
+		private const string TrTagReplacement = @"div";
+		private const string TdTagReplacement = @"div";
+		private const string BootStrapAttributeName = @"class";
+		private const string BootStrapAttributeValue = @"col-xs-{0}";
+		#else
+		private const string TableTagReplacement = @"flex:Layout";
+		private const string TrTagReplacement = @"flex:Row";
+		private const string TdTagReplacement = @"flex:Col";
+		private const string BootStrapAttributeName = @"xs";
+		private const string BootStrapAttributeValue = @"{0}";
+		
+		
+		
+		
+		
+		
+		
+		
+		#endif
 		#region Private variables
+		// Should we reassign the available space to every column after first measurement?
+		private const bool REASSIGN_AVAILABLE = true;
+		// Should we calculate element values independently per row or as a whole table?
+		private const bool VALUES_BY_ROW = true;
 		private const int MAX_WIDTH = 760;
-		private const int DEFAULT_WIDTH = 100;
+		private const int DEFAULT_WIDTH = 50;
 		private const int DEFAULT_CONTROL_WIDTH = 300;
 		private const int DEFAULT_COLUMNS = 12;
 		private const decimal PER_COLUMN_WIDTH = (decimal)MAX_WIDTH / (decimal)12;
@@ -31,45 +58,6 @@ namespace HTMLParser
 		private const string WidthAttribute = @"width";
 		private const string StyleAttribute = @"style";
 		private const string ColSpanAttribute = @"colspan";
-		#if DEBUG
-		private const string TableTagReplacement = @"div";
-		private const string TrTagReplacement = @"div";
-		private const string TdTagReplacement = @"div";
-		private const string BootStrapAttributeName = @"class";
-		private const string BootStrapAttributeValue = @"col-xs-{0}";
-		#else
-		private const string TableTagReplacement = @"flex:Layout";
-		private const string TrTagReplacement = @"flex:Row";
-		private const string TdTagReplacement = @"flex:Col";
-		private const string BootStrapAttributeName = @"xs";
-		private const string BootStrapAttributeValue = @"{0}";
-
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		#endif
 		#endregion
 		#region Public constants
 		#if DEBUG
@@ -79,6 +67,51 @@ namespace HTMLParser
 		public const string HtmlRootTagSelector = @"//asp:Content";
 		public const string HtmlRootTag = @"asp:Content";
 
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		
@@ -154,9 +187,7 @@ namespace HTMLParser
 
 		protected int Width { get; set; }
 
-		protected int AvailableValue { get; set; }
-
-		protected string Value { get; set; }
+		protected int Value { get; set; }
 
 		protected HtmlNode AgilityNode { get; set; }
 
@@ -168,8 +199,7 @@ namespace HTMLParser
 		public HTMLElement() {
 			ChildElements = new List<HTMLElement>();
 			Parent = null;
-			Value = DEFAULT_COLUMNS.ToString();
-			AvailableValue = DEFAULT_COLUMNS;
+			Value = DEFAULT_COLUMNS;
 			Width = MAX_WIDTH;
 			AvailableWidth = Width;
 			Columns = new ColumnInfo();
@@ -240,7 +270,11 @@ namespace HTMLParser
 			// Calculate each column width looking in every row
 			this.CalculateColumnWidth();
 			// Sets the corresponding BootStrap columns based on the previous data
-			this.CalculateValue();
+			if (VALUES_BY_ROW) {
+				this.CalculateValueByRow();
+			} else {
+				this.CalculateValueByContainer();
+			}
 		}
 
 		/// <summary>
@@ -271,7 +305,7 @@ namespace HTMLParser
 				this.Width = calculatedWidth;
 			}
 			this.AvailableWidth = this.Width - calculatedWidth;
-			if (IsRow(this.AgilityNode)) {
+			if (REASSIGN_AVAILABLE && IsRow(this.AgilityNode)) {
 				// Now that we have an approximate idea of the whole element sizing, I need to reassign the space left.
 				ReassignAvailableSpace(this);
 			}
@@ -357,14 +391,6 @@ namespace HTMLParser
 						value = DEFAULT_CONTROL_WIDTH;
 						break;
 					default:
-                        //if (e.Parent != null) 
-                        //{
-                        //    return e.Parent.AvailableWidth;
-                        //}
-                        //else
-                        //{
-                        //    return DEFAULT_WIDTH;
-                        //}
 						if (e.Parent != null) {
 							if (e.Parent.AvailableWidth < DEFAULT_WIDTH) {
 								value = e.Parent.AvailableWidth;
@@ -413,50 +439,98 @@ namespace HTMLParser
 		}
 
 		/// <summary>
-		/// Calculates the number of BootStrap columns
+		/// Calculates the number of BootStrap columns per row
 		/// </summary>
-		protected void CalculateValue() {
-			int value = CalculateSingleValue();
+		protected void CalculateValueByRow() {
+			HtmlNode n = this.AgilityNode;
+			int value = 0;
 			int calculatedValue = 0;
-			this.Value = value.ToString();
 			if (this.ChildElements.Count > 0) {
-				this.AvailableValue = Int32.Parse(this.Value);
+
+				// Calculate everything per row
+				value = CalculateSingleValueByRow();
+				this.Value = value;
 				foreach (HTMLElement c in this.ChildElements) {
-					c.CalculateValue();
-					calculatedValue += Int32.Parse(c.Value);
+					c.CalculateValueByRow();
+					if (IsColumn(c.AgilityNode)) {
+						calculatedValue += c.Value;
+					}
 				}
-				this.Value = ValueRange(calculatedValue).ToString();
+				calculatedValue -= DEFAULT_COLUMNS;
+				if (calculatedValue > 0) {
+					// We have exceeded the maximum number of columns, step back from the first column
+					for (int i = 0; i< this.ChildElements.Count && calculatedValue > 0; i++) {
+						HTMLElement c = this.ChildElements[i];
+						c.Value--;
+						calculatedValue--;
+					}
+				}
 			}
-
-			//RecalculateAvailableWidth(this);
-			//if (this.Parent != null) {
-			//    RecalculateAvailableWidth(this.Parent);
-			//}
-
-			//if (this.Parent != null)
-			//{
-			//    if (this.Parent.Width == 0)
-			//    {
-			//        value = DEFAULT_COLUMNS;
-			//    }
-			//    else
-			//    {
-			//        this.Value = ((Int32)((decimal)DEFAULT_COLUMNS * ((decimal)this.Width / (decimal)this.Parent.Width))).ToString();
-			//    }
-			//}
 		}
 
-		private int CalculateSingleValue() {
+		/// <summary>
+		/// Calculates the number of BootStrap columns per container
+		/// </summary>
+		protected void CalculateValueByContainer() {
+			HtmlNode n = this.AgilityNode;
+			int value = 0;
+			int calculatedValue = 0;
+			if (this.ChildElements.Count > 0) {
+				// Always look for container sizes
+				if (n != null && IsContainer(n)) {
+
+				}
+				foreach (HTMLElement c in this.ChildElements) {
+					c.CalculateValueByContainer();
+					if (IsColumn(c.AgilityNode)) {
+						calculatedValue += c.Value;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Calculates a single element Value per row.
+		/// </summary>
+		/// <returns>The single value.</returns>
+		private int CalculateSingleValueByRow() {
 			if (this.Parent != null) {
-				int width = (this.Parent.Width > 0 ? this.Parent.Width : 1);
-				int available = (this.Parent.AvailableValue > 0 ? this.Parent.AvailableValue : 1);
-				return ValueRange((int)Math.Round((decimal)this.Width / ((decimal)width / (decimal)available), 0, MidpointRounding.AwayFromZero));
+				int parentWidth = (this.Parent.Width > 0 ? this.Parent.Width : 1);
+				decimal percent = ((decimal)this.Width / (decimal)parentWidth);
+				decimal calculatedCols = (decimal)DEFAULT_COLUMNS * percent;
+				//int parentAvailable = (this.Parent.AvailableValue > 0 ? this.Parent.AvailableValue : 1);
+				//return ValueRange((int)Math.Round((decimal)this.Width / ((decimal)parentWidth / (decimal)parentAvailable), 0, MidpointRounding.AwayFromZero));
+				return ValueRange((int)Math.Round(calculatedCols, 0, MidpointRounding.AwayFromZero));
 			} else {
-				return ValueRange((int)Math.Round((decimal)this.Width / PER_COLUMN_WIDTH, 0, MidpointRounding.AwayFromZero));
+				//return ValueRange((int)Math.Round((decimal)this.Width / PER_COLUMN_WIDTH, 0, MidpointRounding.AwayFromZero));
+				return DEFAULT_COLUMNS;
 			}
 		}
 
-		private int ValueRange(int value) {
+		/// <summary>
+		/// Calculates a single element Value per container.
+		/// </summary>
+		/// <returns>The single value.</returns>
+		private int CalculateSingleValueByContainer() {
+			if (this.Parent != null) {
+				int parentWidth = (this.Parent.Width > 0 ? this.Parent.Width : 1);
+				decimal percent = ((decimal)this.Width / (decimal)parentWidth);
+				decimal calculatedCols = (decimal)DEFAULT_COLUMNS * percent;
+				//int parentAvailable = (this.Parent.AvailableValue > 0 ? this.Parent.AvailableValue : 1);
+				//return ValueRange((int)Math.Round((decimal)this.Width / ((decimal)parentWidth / (decimal)parentAvailable), 0, MidpointRounding.AwayFromZero));
+				return ValueRange((int)Math.Round(calculatedCols, 0, MidpointRounding.AwayFromZero));
+			} else {
+				//return ValueRange((int)Math.Round((decimal)this.Width / PER_COLUMN_WIDTH, 0, MidpointRounding.AwayFromZero));
+				return DEFAULT_COLUMNS;
+			}
+		}
+
+		/// <summary>
+		/// Bounds check to DEFAULT_COLUMNS.
+		/// </summary>
+		/// <returns>The range.</returns>
+		/// <param name="value">Value.</param>
+		private static int ValueRange(int value) {
 			if (value >= DEFAULT_COLUMNS) {
 				value = DEFAULT_COLUMNS;
 			}
@@ -464,24 +538,6 @@ namespace HTMLParser
 				value = 1;
 			}
 			return value;
-		}
-
-		private void RecalculateAvailableValue(HTMLElement e) {
-			int available = 0;
-			available = e.AvailableValue - Int32.Parse(e.Value);
-			if (available < 0) {
-				available = 0;
-			}
-			e.AvailableValue = available;
-		}
-
-		private void RecalculateAvailableWidth(HTMLElement e) {
-			int available = 0;
-			available = e.AvailableWidth - (int)(Decimal.Parse(e.Value) * PER_COLUMN_WIDTH);
-			if (available < 0) {
-				available = 0;
-			}
-			e.AvailableWidth = available;
 		}
 
 		/// <summary>
@@ -648,7 +704,7 @@ namespace HTMLParser
 		}
 
 		private string GetDescription() {
-			return String.Format("HasColumns: {0}, Columns: {1}{2}, Width: {3}, AvailableWidth: {4}, AvailableValue: {5}, Value: {6}\r\n", this.hasColumns, this.Columns.Count, IsContainer(this.AgilityNode) ? String.Format(" ({0})", this.Columns.Describe()) : String.Empty, this.Width, this.AvailableWidth, this.AvailableValue, this.Value);
+			return String.Format("HasColumns: {0}, Columns: {1}{2}, Width: {3}, AvailableWidth: {4}, Value: {5}\r\n", this.hasColumns, this.Columns.Count, IsContainer(this.AgilityNode) ? String.Format(" ({0})", this.Columns.Describe()) : String.Empty, this.Width, this.AvailableWidth, this.Value);
 		}
 
 		/// <summary>
