@@ -92,6 +92,23 @@ namespace HTMLParser
 				return false;
 			}
 		}
+
+        public string SaveAsString()
+        {
+            if (_htmlDoc != null)
+            {
+                StringBuilder sb = new StringBuilder();
+                StringWriter sw = new StringWriter();
+                _htmlDoc.Save(sw);
+                return sb.ToString();
+            }
+            else
+            {
+                return String.Empty;
+            }
+        }
+
+
 	}
 }
 
