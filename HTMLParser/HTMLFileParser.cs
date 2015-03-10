@@ -7,23 +7,46 @@ using HtmlAgilityPack;
 
 namespace HTMLParser
 {
-	public class HTMLFileParser
-	{
+    /// <summary>
+    /// Handles HTML file parsing
+    /// </summary>
+    public class HTMLFileParser
+    {
 
-		private HtmlDocument _htmlDoc = null;
+        private HtmlDocument _htmlDoc = null;
 
-		public string FilePath { get; set; }
+        /// <summary>
+        /// Indicates the file path of the working item.
+        /// </summary>
+        public string FilePath { get; set; }
 
-		public HTMLFileParser(string filePath) {
-			FilePath = filePath;
-		}
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="filePath"></param>
+        public HTMLFileParser(string filePath)
+        {
+            FilePath = filePath;
+        }
 
-		public bool Open() {
-			return Open(FilePath);
-		}
+        /// <summary>
+        /// Open an HTML file to work with it.
+        /// </summary>
+        /// <returns></returns>
+        public bool Open()
+        {
+            return Open(FilePath);
+        }
 
-		public bool Open(string filePath) {
-			try {
+        /// <summary>
+        /// Open an HTML file to work with it.
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        public bool Open(string filePath)
+        {
+            try
+            {
                 if (File.Exists(filePath))
                 {
                     _htmlDoc = new HtmlDocument();
@@ -39,60 +62,100 @@ namespace HTMLParser
 
                     // ParseErrors is an ArrayList containing any errors from the Load statement
                     return !(_htmlDoc.ParseErrors != null && _htmlDoc.ParseErrors.Count() > 0);
-                } else {
+                }
+                else
+                {
                     return false;
                 }
-			} catch {
-				return false;
-			}
+            }
+            catch
+            {
+                return false;
+            }
 
-		}
+        }
 
-		public void Describe(string fileName) {
+        /// <summary>
+        /// Write debug information to file.
+        /// </summary>
+        /// <param name="fileName"></param>
+        public void Describe(string fileName)
+        {
             StringBuilder sb = new StringBuilder();
-			if (_htmlDoc != null) {
-				using (HTMLElement rootElement = new HTMLElement()) {
-					rootElement.AppendNode(_htmlDoc.DocumentNode.ChildNodes.FindFirst(HTMLElement.HtmlRootTag));
-					rootElement.Describe(sb);
-				}
-			}
+            if (_htmlDoc != null)
+            {
+                using (HTMLElement rootElement = new HTMLElement())
+                {
+                    rootElement.AppendNode(_htmlDoc.DocumentNode.Descendants(HTMLElement.HtmlRootTag).FirstOrDefault());
+                    rootElement.Describe(sb);
+                }
+            }
             File.WriteAllText(fileName, sb.ToString());
-		}
+        }
 
-		public bool Fix() {
-			if (_htmlDoc != null) {
-				using (HTMLElement rootElement = new HTMLElement()) {
-					rootElement.AppendNode(_htmlDoc.DocumentNode.ChildNodes.FindFirst(HTMLElement.HtmlRootTag));
-					rootElement.Fix();
-				}
-				return true;
-			} else {
-				return false;
-			}
-		}
+        /// <summary>
+        /// Do HTML transformation based on the calculated data.
+        /// </summary>
+        /// <returns></returns>
+        public bool Fix()
+        {
+            if (_htmlDoc != null)
+            {
+                using (HTMLElement rootElement = new HTMLElement())
+                {
+                    rootElement.AppendNode(_htmlDoc.DocumentNode.Descendants(HTMLElement.HtmlRootTag).FirstOrDefault());
+                    rootElement.Fix();
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
-		public bool Save() {
-			return Save(makeBackup: false);
-		}
+        /// <summary>
+        /// Save file to disk.
+        /// </summary>
+        /// <returns></returns>
+        public bool Save()
+        {
+            return Save(makeBackup: false);
+        }
 
-		public bool Save(bool makeBackup) {
-			if (_htmlDoc != null) {
-				if (makeBackup) {
-					string backupFilePath = String.Format(@"{0}_backup.html", FilePath);
-					if (File.Exists(backupFilePath)) {
-						File.Delete(backupFilePath);
-					}
-                    if (File.Exists(FilePath)) {
+        /// <summary>
+        /// Save file to disk.
+        /// </summary>
+        /// <returns></returns>
+        public bool Save(bool makeBackup)
+        {
+            if (_htmlDoc != null)
+            {
+                if (makeBackup)
+                {
+                    string backupFilePath = String.Format(@"{0}_backup.html", FilePath);
+                    if (File.Exists(backupFilePath))
+                    {
+                        File.Delete(backupFilePath);
+                    }
+                    if (File.Exists(FilePath))
+                    {
                         File.Copy(FilePath, backupFilePath);
                     }
-				}
-				_htmlDoc.Save(FilePath);
-				return true;
-			} else {
-				return false;
-			}
-		}
+                }
+                _htmlDoc.Save(FilePath);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
+        /// <summary>
+        /// Return file as string.
+        /// </summary>
+        /// <returns></returns>
         public string SaveAsString()
         {
             if (_htmlDoc != null)
@@ -108,7 +171,6 @@ namespace HTMLParser
             }
         }
 
-
-	}
+    }
 }
 
