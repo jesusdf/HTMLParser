@@ -81,6 +81,14 @@ namespace HTMLParser
         /// <param name="fileName"></param>
         public void Describe(string fileName)
         {
+            File.WriteAllText(fileName, Describe());
+        }
+
+        /// <summary>
+        /// Return debug information.
+        /// </summary>
+        public string Describe()
+        {
             StringBuilder sb = new StringBuilder();
             if (_htmlDoc != null)
             {
@@ -90,7 +98,7 @@ namespace HTMLParser
                     rootElement.Describe(sb);
                 }
             }
-            File.WriteAllText(fileName, sb.ToString());
+            return sb.ToString();
         }
 
         /// <summary>

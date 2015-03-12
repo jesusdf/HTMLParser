@@ -17,33 +17,33 @@ namespace HTMLParser
     {
 
         //#if DEBUG
-        //private const string TableTagReplacement = @"div";
-        //private const string TrTagReplacement = @"div";
-        //private const string TdTagReplacement = @"div";
-        //private const string BootStrapAttributeName = @"class";
-        //private const string BootStrapAttributeValue = @"col-xs-{0}";
-        ///// <summary>
-        ///// Indicates an HTML XPath selector for the root element
-        ///// </summary>
-        //public const string HtmlRootTagSelector = @"//body";
-        ///// <summary>
-        ///// Indicates the HTML Tag of the root element
-        ///// </summary>
-        //public const string HtmlRootTag = @"body";
-        //#else
-        private const string TableTagReplacement = @"flex:Layout";
-        private const string TrTagReplacement = @"flex:Row";
-        private const string TdTagReplacement = @"flex:Col";
-        private const string BootStrapAttributeName = @"xs";
-        private const string BootStrapAttributeValue = @"{0}";
+        private const string TableTagReplacement = @"div";
+        private const string TrTagReplacement = @"div";
+        private const string TdTagReplacement = @"div";
+        private const string BootStrapAttributeName = @"class";
+        private const string BootStrapAttributeValue = @"col-xs-{0}";
         /// <summary>
         /// Indicates an HTML XPath selector for the root element
         /// </summary>
-        public const string HtmlRootTagSelector = @"//asp:Content";
+        public const string HtmlRootTagSelector = @"//body";
         /// <summary>
         /// Indicates the HTML Tag of the root element
         /// </summary>
-        public const string HtmlRootTag = @"asp:Content";
+        public const string HtmlRootTag = @"body";
+        //#else
+        //private const string TableTagReplacement = @"flex:Layout";
+        //private const string TrTagReplacement = @"flex:Row";
+        //private const string TdTagReplacement = @"flex:Col";
+        //private const string BootStrapAttributeName = @"xs";
+        //private const string BootStrapAttributeValue = @"{0}";
+        ///// <summary>
+        ///// Indicates an HTML XPath selector for the root element
+        ///// </summary>
+        //public const string HtmlRootTagSelector = @"//asp:Content";
+        ///// <summary>
+        ///// Indicates the HTML Tag of the root element
+        ///// </summary>
+        //public const string HtmlRootTag = @"asp:Content";
         //#endif
         #region Private variables
         // Should we reassign the available space to every column after first measurement?
@@ -907,21 +907,22 @@ namespace HTMLParser
                         {
                             case TableTag:
                                 //#if DEBUG
-                                //                                // Add all its children to the parent node and remove it
-                                //                                foreach (HtmlNode c in n.ChildNodes) {
-                                //                                    n.ParentNode.ChildNodes.Append(c);
-                                //                                }
-                                //                                n.Remove();
+                                // Add all its children to the parent node and remove it
+                                foreach (HtmlNode c in n.ChildNodes)
+                                {
+                                    n.ParentNode.ChildNodes.Append(c);
+                                }
+                                n.Remove();
                                 //#else
-                                n.Name = TableTagReplacement;
-                                CleanAttributes(n);
+                                //n.Name = TableTagReplacement;
+                                //CleanAttributes(n);
                                 //#endif
                                 break;
                             case TrTag:
                                 n.Name = TrTagReplacement;
                                 CleanAttributes(n);
                                 //#if DEBUG
-                                //                                n.Attributes.Add("class", "row");
+                                n.Attributes.Add("class", "row");
                                 //#endif
                                 break;
                             case TdTag:
