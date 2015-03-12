@@ -169,7 +169,7 @@ namespace HTMLParser
             if (_htmlDoc != null)
             {
                 StringBuilder sb = new StringBuilder();
-                StringWriter sw = new StringWriter();
+                StringWriter sw = new StringWriter(sb);
                 _htmlDoc.Save(sw);
                 return sb.ToString();
             }
