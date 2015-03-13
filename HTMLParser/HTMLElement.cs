@@ -68,6 +68,7 @@ namespace HTMLParser
         private const string WidthAttribute = @"width";
         private const string StyleAttribute = @"style";
         private const string ColSpanAttribute = @"colspan";
+        private const string ColumnType = @"column";
         #endregion
         #region Helper Classes
         /// <summary>
@@ -318,19 +319,27 @@ namespace HTMLParser
                     this.AvailableWidth = this.Width - calculatedWidth;
                 }
             }
-            if (calculatedWidth > 0 && calculatedWidth <= MAX_WIDTH && !(IsRow(this.AgilityNode)))
+            else
             {
-                this.Width = calculatedWidth;
+                calculatedWidth = this.Width;
             }
             this.AvailableWidth = this.Width - calculatedWidth;
-            if (REASSIGN_AVAILABLE && IsRow(this.AgilityNode))
+            if (
+                calculatedWidth > 0 &&
+                calculatedWidth <= MAX_WIDTH &&
+                (!(IsRow(this.AgilityNode)) || this.AvailableWidth < 0)
+               )
             {
-                // Now that we have an approximate idea of the whole element sizing, I need to reassign the space left.
-                ReassignAvailableSpace(this);
+                this.Width = calculatedWidth;
             }
             if (this.AvailableWidth < 0)
             {
                 this.AvailableWidth = 0;
+            }
+            if (REASSIGN_AVAILABLE && IsRow(this.AgilityNode))
+            {
+                // Now that we have an approximate idea of the whole element sizing, I need to reassign the space left.
+                ReassignAvailableSpace(this);
             }
             return this.Width;
         }
@@ -436,7 +445,7 @@ namespace HTMLParser
                     default:
                         if (e.Parent != null)
                         {
-                            if (e.Parent.AvailableWidth < DEFAULT_WIDTH)
+                            if (e.Parent.AvailableWidth < DEFAULT_WIDTH && e.Parent.AvailableWidth > 0)
                             {
                                 value = e.Parent.AvailableWidth;
                             }
@@ -931,8 +940,11 @@ namespace HTMLParser
                                 SetColAttributes(e);
                                 break;
                         }
+                        if (!NeedsWidthAttribute(n))
+                        {
+                            CleanWidthAttributes(e);
+                        }
                     }
-                    CleanWidthAttributes(e);
                     e.Fix();
                 }
             }
@@ -994,6 +1006,22 @@ namespace HTMLParser
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets whether the specified node needs to keep its Width attributes or not.
+        /// </summary>
+        /// <param name="n"></param>
+        /// <returns></returns>
+        private static bool NeedsWidthAttribute(HtmlNode n)
+        {
+            if (
+                n.Name.ToLower().Contains(ColumnType)
+                )
+            {
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
