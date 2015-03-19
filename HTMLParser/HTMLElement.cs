@@ -56,7 +56,11 @@ namespace HTMLParser
         private const int DEFAULT_COLUMNS = 12;
         //private const decimal PER_COLUMN_WIDTH = (decimal)MAX_WIDTH / (decimal)DEFAULT_COLUMNS;
         private const string TableTag = @"table";
+        private const string TheadTag = @"thead";
+        private const string TbodyTag = @"tbody";
+        private const string TfootTag = @"tfoot";
         private const string TrTag = @"tr";
+        private const string ThTag = @"th";
         private const string TdTag = @"td";
         private const string StyleTag = @"style";
         private const string InputTag = @"input";
@@ -848,6 +852,7 @@ namespace HTMLParser
             {
                 switch (n.Name.ToLower())
                 {
+                    case ThTag:
                     case TdTag:
                         return true;
                 }
@@ -928,6 +933,16 @@ namespace HTMLParser
                                 //CleanAttributes(n);
                                 //#endif
                                 break;
+                            case TheadTag:
+                            case TbodyTag:
+                            case TfootTag:
+                                // Add all its children to the parent node and remove it
+                                foreach (HtmlNode c in n.ChildNodes)
+                                {
+                                    n.ParentNode.ChildNodes.Append(c);
+                                }
+                                n.Remove();
+                                break;
                             case TrTag:
                                 n.Name = TrTagReplacement;
                                 CleanAttributes(n);
@@ -935,6 +950,7 @@ namespace HTMLParser
                                 n.Attributes.Add("class", "row");
                                 //#endif
                                 break;
+                            case ThTag:
                             case TdTag:
                                 n.Name = TdTagReplacement;
                                 CleanAttributes(n);
