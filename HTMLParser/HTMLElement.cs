@@ -58,6 +58,7 @@ namespace HTMLParser
         private const string TableTag = @"table";
         private const string TrTag = @"tr";
         private const string TdTag = @"td";
+        private const string StyleTag = @"style";
         private const string InputTag = @"input";
         private const string StyleWidth = @"width:";
         private const string Semicolon = @";";
@@ -939,6 +940,9 @@ namespace HTMLParser
                                 CleanAttributes(n);
                                 SetColAttributes(e);
                                 break;
+                            case StyleTag:
+                                n.InnerHtml = CleanStyle(n.InnerHtml, WidthAttribute);
+                                break;
                         }
                         if (!NeedsWidthAttribute(n))
                         {
@@ -970,21 +974,11 @@ namespace HTMLParser
                             a.Remove();
                             break;
                         case StyleAttribute:
-                            string style = a.Value;
                             int s = 0;
-                            s = style.IndexOf(StyleWidth, StringComparison.OrdinalIgnoreCase);
+                            s = a.Value.IndexOf(StyleWidth, StringComparison.OrdinalIgnoreCase);
                             if (s >= 0)
                             {
-                                int ss = 0;
-                                ss = style.IndexOf(Semicolon, s, StringComparison.OrdinalIgnoreCase);
-                                if (ss >= 0)
-                                {
-                                    style = String.Format("{0}{1}", style.Substring(0, s), style.Substring(style.IndexOf(Semicolon, s, StringComparison.OrdinalIgnoreCase) + 1));
-                                }
-                                else
-                                {
-                                    style = style.Substring(0, style.IndexOf(StyleWidth, StringComparison.OrdinalIgnoreCase));
-                                }
+                                string style = ProcessStyleValue(a.Value, StyleWidth);
                                 if (String.IsNullOrWhiteSpace(style))
                                 {
                                     a.Remove();
@@ -1006,6 +1000,52 @@ namespace HTMLParser
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Clean all ocurrences of an attribute in a Style text
+        /// </summary>
+        /// <param name="styleValue"></param>
+        /// <param name="attributeName"></param>
+        /// <returns></returns>
+        private static string CleanStyle(string styleValue, string attributeName)
+        {
+            int loopCount = 0;
+            string style = styleValue;
+            while ((loopCount < 1000) && (style.IndexOf(StyleWidth, StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                style = ProcessStyleValue(style, attributeName);
+                loopCount++;
+            }
+            return style;
+        }
+
+        /// <summary>
+        /// Removes the attribute from the style text.
+        /// </summary>
+        /// <param name="style"></param>
+        /// <param name="attributeName"></param>
+        /// <returns></returns>
+        private static string ProcessStyleValue(string originalStyle, string attributeName)
+        {
+            int s = 0;
+            string style = originalStyle;
+            s = style.IndexOf(attributeName, StringComparison.OrdinalIgnoreCase);
+            if (s >= 0)
+            {
+                int ss = 0;
+                ss = style.IndexOf(Semicolon, s, StringComparison.OrdinalIgnoreCase);
+                if (ss >= 0)
+                {
+                    style = String.Format("{0}{1}", style.Substring(0, s), style.Substring(style.IndexOf(Semicolon, s, StringComparison.OrdinalIgnoreCase) + 1));
+                }
+                else
+                {
+                    style = style.Substring(0, style.IndexOf(attributeName, StringComparison.OrdinalIgnoreCase));
+                }
+                return style;
+            }
+            return originalStyle;
         }
 
         /// <summary>
